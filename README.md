@@ -102,30 +102,28 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 **Data-specific onformation for:** ***Site_information_seed.xlsx***
 
     Sheets: sp_site	Information on the location of seed collection of studying species
-    
     Variable list	 Description
     * Species_powo	 Latin species (powo)
     * Species	 Latin species
     * Site1	 Collection site 1
     * Site2	 Collection site 2
     * Site3	 Collection site 3
-	
-   Sheets: site_map	City information of studying species seed collection point
-   
-   Variable list	 Description
-   * Pinyin	 City name
-   * Address	 City name
-   * City	 Plant richness of native species (number of species added)
+    
+    Sheets: site_map	City information of studying species seed collection point
+    Variable list	 Description
+    * Pinyin	 City name
+    * Address	 City name
+    * City	 Plant richness of native species (number of species added)
 
 **Data-specific onformation for:** ***traits_mean.xlsx***
 
-   Variable list	 Description
-   * Chol	 Leaf chlorophyll (SPAD)
-   * SLA	 Specific leaf area (cm2 g-1)
-   * LDMC	 Leaf dry matter content (g g-1)
-   * SRL	 Specific root length (cm2 g-1)
-   * FRR	 Fine-to-total root mass (g g-1)
-   * RS	 Root-to-shoot mass ratio (g g-1)
-   * Origin	 Geographical origin of plants (native vs. exotic)
-   * taxon	 Latin name of study species
-   * Species	 Latin name of study species
+    Variable list	 Description
+    * Chol	 Leaf chlorophyll (SPAD)
+    * SLA	 Specific leaf area (cm2 g-1)
+    * LDMC	 Leaf dry matter content (g g-1)
+    * SRL	 Specific root length (cm2 g-1)
+    * FRR	 Fine-to-total root mass (g g-1)
+    * RS	 Root-to-shoot mass ratio (g g-1)
+    * Origin	 Geographical origin of plants (native vs. exotic)
+    * taxon	 Latin name of study species
+    * Species	 Latin name of study species
