@@ -86,13 +86,13 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 **Data-specific onformation for:** ***Greenhouse_data_group.xlsx***
 
     Variable list	 Description
-    * Sample_ID	 Sample id of  plant rhizosphere soil 
-    * Repeats	 Repeat number of soil samples
-    * Chinese_name	 Chinese name of study species
-    * Species	 Latin name of study species
-    * Genus	 Genus name of research species
-    * Family	 Family name of research species
-    * Origin	 Geographical origin of plants (native vs. exotic)
+    * Sample_ID	      Sample id of  plant rhizosphere soil 
+    * Repeats	      Repeat number of soil samples
+    * Chinese_name	      Chinese name of study species
+    * Species	      Latin name of study species
+    * Genus	           Genus name of research species
+    * Family	      Family name of research species
+    * Origin	      Geographical origin of plants (native vs. exotic)
     * Overall_Richness	 Fungi richess
 
 **Data-specific onformation for:** ***Greenhouse_fungi_Flattening.xlsx***
