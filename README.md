@@ -46,30 +46,30 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 
 **Data-specific onformation for:** ***Field_data_group.xlsx***
 
-    Variable list	 Description
-    * Sample_ID	 Sample id of  plant rhizosphere soil 
-    * Latitude	 Latitude of sampling point
-    * Longitude	 Longitude of sampling point
-    * Year	 Sampling year
-    * Site	 Name of sampling site
-    * Chinese_name	 Chinese name of study species
-    * Species	 Latin name of study species
-    * Genus	 Genus name of research species
-    * Family	 Family name of research species
-    * Origin	 Geographical origin of plants (native vs. exotic)
-    * Site_pool	 The total richness of fungi for each site and year
-    * Soil_ph	 Soil pH
-    * Wcont	 Soil water content
-    * Soil_N	 Soil total nitrogen content
-    * Tave	 Mean annual temperature (℃)
-    * Precipitation	   Mean annual precipitation (mm)
-    * Fungal_SR	      Fungi richness
-    * Chol	            Leaf chlorophyll (SPAD)
-    * SLA	            Specific leaf area (cm2 g-1)
-    * LDMC	            Leaf dry matter content (g g-1)
-    * SRL	            Specific root length (cm2 g-1)
-    * FRR	            Fine-to-total root mass (g g-1)
-    * RS	                Root-to-shoot mass ratio (g g-1)
+    Variable list	            Description
+    * Sample_ID	            Sample id of  plant rhizosphere soil 
+    * Latitude	               Latitude of sampling point
+    * Longitude	            Longitude of sampling point
+    * Year	                  Sampling year
+    * Site	                  Name of sampling site
+    * Chinese_name	         Chinese name of study species
+    * Species	               Latin name of study species
+    * Genus	                  Genus name of research species
+    * Family	               Family name of research species
+    * Origin	               Geographical origin of plants (native vs. exotic)
+    * Site_pool	            The total richness of fungi for each site and year
+    * Soil_ph	               Soil pH
+    * Wcont	                  Soil water content
+    * Soil_N	               Soil total nitrogen content
+    * Tave	                  Annual average temperature (℃)
+    * Precipitation	         Annual precipitation (mm)
+    * Fungal_SR	            Fungi richness
+    * Chol	                  Leaf chlorophyll (SPAD)
+    * SLA	                  Specific leaf area (cm2 g-1)
+    * LDMC	                  Leaf dry matter content (g g-1)
+    * SRL	                  Specific root length (cm2 g-1)
+    * FRR	                  Fine-to-total root mass (g g-1)
+    * RS	                     Root-to-shoot mass ratio (g g-1)
     * Fungal_field_Di	 Fungal compositional distinctiveness estimated in the field
     * Fungal_green_Di	 Fungal compositional distinctiveness estimated in the greenhouse experiment
     * Fun_Di	 Species functional distinctiveness for each year and site
