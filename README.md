@@ -62,14 +62,14 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Wcont	 Soil water content
     * Soil_N	 Soil total nitrogen content
     * Tave	 Mean annual temperature (℃)
-    * Precipitation	 Mean annual precipitation (mm)
-    * Fungal_SR	 Fungi richness
-    * Chol	 Leaf chlorophyll (SPAD)
-    * SLA	 Specific leaf area (cm2 g-1)
-    * LDMC	 Leaf dry matter content (g g-1)
-    * SRL	 Specific root length (cm2 g-1)
-    * FRR	 Fine-to-total root mass (g g-1)
-    * RS	 Root-to-shoot mass ratio (g g-1)
+    * Precipitation	   Mean annual precipitation (mm)
+    * Fungal_SR	      Fungi richness
+    * Chol	            Leaf chlorophyll (SPAD)
+    * SLA	            Specific leaf area (cm2 g-1)
+    * LDMC	            Leaf dry matter content (g g-1)
+    * SRL	            Specific root length (cm2 g-1)
+    * FRR	            Fine-to-total root mass (g g-1)
+    * RS	                Root-to-shoot mass ratio (g g-1)
     * Fungal_field_Di	 Fungal compositional distinctiveness estimated in the field
     * Fungal_green_Di	 Fungal compositional distinctiveness estimated in the greenhouse experiment
     * Fun_Di	 Species functional distinctiveness for each year and site
