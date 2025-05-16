@@ -90,7 +90,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Repeats	      Repeat number of soil samples
     * Chinese_name	      Chinese name of study species
     * Species	      Latin name of study species
-    * Genus	           Genus name of research species
+    * Genus	              Genus name of research species
     * Family	      Family name of research species
     * Origin	      Geographical origin of plants (native vs. exotic)
     * Overall_Richness	 Fungi richess
