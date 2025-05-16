@@ -116,6 +116,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
    * City	 Plant richness of native species (number of species added)
 
 **Data-specific onformation for:** ***traits_mean.xlsx***
+
    Variable list	 Description
    * Chol	 Leaf chlorophyll (SPAD)
    * SLA	 Specific leaf area (cm2 g-1)
