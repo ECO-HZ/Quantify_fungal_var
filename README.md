@@ -102,6 +102,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 **Data-specific onformation for:** ***Site_information_seed.xlsx***
 
     Sheets: sp_site	Information on the location of seed collection of studying species
+    
     Variable list	 Description
     * Species_powo	 Latin species (powo)
     * Species	 Latin species
@@ -110,6 +111,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Site3	 Collection site 3
 	
    Sheets: site_map	City information of studying species seed collection point
+   
    Variable list	 Description
    * Pinyin	 City name
    * Address	 City name
