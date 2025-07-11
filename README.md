@@ -31,16 +31,17 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 *List of R-scripts*
 
     * 1. Figure_1.tiff (Draw in ppt)
-    * 2. Figure_2.R  
-    * 3. Figure_3 & Table S6.R  
-    * 4. Figure_S1.R  
-    * 5. Figure_S2.R  
-    * 6. Figure_S3.R 
-    * 7. Figure_S4.R  
-    * 8. Table S3 & Table S4 & Table S5 (Field survey part).R  
-    * 9. Table S3 & Table S4 & Table S5 (Greenhouse exp. part).R  
+    * 2. Figure 2 & Table S3 & Table S4 (Field survey part).R  
+    * 3. Figure 3.R  
+    * 4. Figure 4 & Table S6.R  
+    * 5. Figure_S1.R  
+    * 6. Figure_S2.R 
+    * 7. Figure_S3.R  
+    * 8. Figure_S4.R  
+    * 9. Figure_S5.R  
+    * 9. Table S3 & Table S5 (Greenhouse exp. part).R  
     
-**Data-specific onformation for:** ***Field_data_row_ASVs.xlsx***
+**Data-specific onformation for:** ***Field_data_raw_ASVs.xlsx***
 
     * Abundance table of raw sequencing data of rhizosphere fungi from field survey (not rarefied to minimum sample size).
 
@@ -63,7 +64,6 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Soil_N	         Soil total nitrogen content
     * Tave	                 Annual average temperature (℃)
     * Precipitation	         Annual precipitation (mm)
-    * Fungal_SR	         Fungi richness
     * Chol	                 Leaf chlorophyll (SPAD)
     * SLA	                 Specific leaf area (cm2 g-1)
     * LDMC	                 Leaf dry matter content (g g-1)
@@ -79,7 +79,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 
     * Abundance table of raw sequencing data of rhizosphere fungi from field survey (rarefied to minimum sample size)
       
-**Data-specific onformation for:** ***Greenhouse_ASVs_row_data.xlsx***
+**Data-specific onformation for:** ***Greenhouse_data_raw_ASVs.xlsx***
 
     * Abundance table of raw sequencing data of rhizosphere fungi from greenhouse experiment (not rarefied to minimum sample size)
 
@@ -93,7 +93,6 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Genus	              Genus name of research species
     * Family	      Family name of research species
     * Origin	      Geographical origin of plants (native vs. exotic)
-    * Overall_Richness    Fungi richess
 
 **Data-specific onformation for:** ***Greenhouse_fungi_Flattening.xlsx***
 
