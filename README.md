@@ -22,7 +22,7 @@ All data will be made available upon acceptance of the manuscript.
     
 *List of phylogenetic tree data files (.newick)*  
 
-    * 1. IQ_tree_plant_2025.newick  (Phylogenetic tree of studying plant species)
+    * 1. IQ_tree_plant_2025.newick (Phylogenetic tree of studying plant species)
 
 ***In Code folder***
 
