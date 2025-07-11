@@ -39,7 +39,10 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * 7. Figure_S3.R  
     * 8. Figure_S4.R  
     * 9. Figure_S5.R  
-    * 9. Table S3 & Table S5 (Greenhouse exp. part).R  
+    * 10. Table S3 & Table S5 (Greenhouse exp. part).R  
+    Ohter code
+    * 01_Calculation of asymptotic exponential Shannon diversity.R  
+    * 02_Distinctiveness index calculation.R  
     
 **Data-specific onformation for:** ***Field_data_raw_ASVs.xlsx***
 
