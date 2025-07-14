@@ -11,10 +11,10 @@ All data will be made available upon acceptance of the manuscript.
 
 *List of experimental data files (.xlsx)*
 
-    * 1. Field_data_row_ASVs.xlsx  
+    * 1. Field_data_raw_ASVs.xlsx  
     * 2. Field_data_group.xlsx  
     * 3. Field_fungi_Flattening.xlsx
-    * 4. Greenhouse_data_row_ASVs.xlsx  
+    * 4. Greenhouse_data_raw_ASVs.xlsx  
     * 5. Greenhouse_data_group.xlsx  
     * 6. Greenhouse_fungi_Flattening.xlsx  
     * 7. Site_information_seed.xlsx  
@@ -40,9 +40,14 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * 8. Figure_S4.R  
     * 9. Figure_S5.R  
     * 10. Table S3 & Table S5 (Greenhouse exp. part).R  
-    Ohter code
+    Ohter codes
     * 01_Calculation of asymptotic exponential Shannon diversity.R  
+      All the samples, regardless of number of reads, were well characterized with saturating accumulation curves such that ASV diversity measured in the samples 
+      was nearly identical to asymptotic exponential Shannon diversity estimated in iNEXT (R2 > 0.99 for both the field survey and greenhouse experiment, based on 
+      general linear regression). Therefore, we used the raw ASVs abundance data for all the following analyses.
+      
     * 02_Distinctiveness index calculation.R  
+      We sequentially calculated distinctiveness indices for plant functional traits, phylogenetic relationships, and fungal community composition based on a common distinctiveness metric.
     
 **Data-specific onformation for:** ***Field_data_raw_ASVs.xlsx***
 
