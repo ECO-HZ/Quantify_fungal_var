@@ -2,6 +2,8 @@
 #################### Distinctiveness index calculation #########################
 ################################################################################
 
+# We sequentially calculated distinctiveness indices for plant functional traits, phylogenetic relationships, and fungal community composition based on a common distinctiveness metric.
+
 # Loading the R packages
 library(openxlsx)
 library(dplyr)
