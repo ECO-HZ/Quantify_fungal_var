@@ -2,8 +2,6 @@
 #################### Distinctiveness index calculation #########################
 ################################################################################
 
-# We sequentially calculated distinctiveness indices for plant functional traits, phylogenetic relationships, and fungal community composition based on a common distinctiveness metric.
-
 # Loading the R packages
 library(openxlsx)
 library(dplyr)
@@ -12,7 +10,7 @@ library(phytools)
 library(treeio)
 library(funrar)
 
-# Function to standardize (only if needed) ----
+# Function to standardize 
 standr <- function(x){(x-min(x))/(max(x)-min(x))} 
 
 ################################# Field survey ################################# 
@@ -22,7 +20,7 @@ Field_group$Sample_ID <- rownames(Field_group)
 
 # Soil samples-abundance table
 Field_otu_raw <- read.xlsx("Field_data_raw_ASVs.xlsx", sheet = "raw_otu", colNames = T, rowNames = T)
-Field_otu_raw <- Field_otu_row[ ,Field_group$Sample_ID]
+Field_otu_raw <- Field_otu_raw[ ,Field_group$Sample_ID]
 Field_otu_raw[1:6, 1:6]
 #colSums(Field_otu_raw)
 
