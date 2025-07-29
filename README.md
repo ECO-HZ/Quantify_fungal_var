@@ -20,7 +20,7 @@ All data will be made available upon acceptance of the manuscript.
     * 7. Site_information_seed.xlsx  
     * 8. traits_mean.xlsx
     * 9. Datasets S1.xlsx (informations of responsive ASVs that were sensitive to environmental variation(based on threshold indicator taxa analysis))  
-    * 10. FungalTraits.xlsx ()  
+    * 10. FungalTraits.xlsx (* The FungalTraits database (Põlme, S., Abarenkov, K., Henrik Nilsson, R., Lindahl, B.D., Clemmensen, K.E., Kauserud, H., et al. 2021. "FungalTraits: a user-friendly traits database of fungi and fungus-like stramenopiles." Fungal Diversity 105: 1-16.))  
     
 *List of phylogenetic tree data files (.newick)*  
 
