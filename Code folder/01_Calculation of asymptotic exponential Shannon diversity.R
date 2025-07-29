@@ -2,10 +2,6 @@
 ########## Calculation of asymptotic exponential Shannon diversity #############
 ################################################################################
 
-# All the samples, regardless of number of reads, were well characterized with saturating accumulation curves such that ASV diversity measured in the samples 
-# was nearly identical to asymptotic exponential Shannon diversity estimated in iNEXT (R2 > 0.99 for both the field survey and greenhouse experiment, based on 
-# general linear regression). Therefore, we used the raw ASVs abundance data for all the following analyses.
-
 # Loading the R packages
 library(openxlsx)
 library(iNEXT)
