@@ -1,4 +1,4 @@
-The following files allow one to reproduce analyses in the manuscript entitled "Alien invasion effect on soil biota: the interplay between alien species and environmental variation".
+The following files allow one to reproduce analyses in the manuscript entitled "Environmental context modulates rhizosphere fungal distinctiveness across plant phylogeny and functional traits".
 
 DATA & FILE OVERVIEW
 
@@ -18,7 +18,9 @@ All data will be made available upon acceptance of the manuscript.
     * 5. Greenhouse_data_group.xlsx  
     * 6. Greenhouse_fungi_Flattening.xlsx  
     * 7. Site_information_seed.xlsx  
-    * 8. traits_mean.xlsx  
+    * 8. traits_mean.xlsx
+    * 9. Datasets S1.xlsx (informations of responsive ASVs that were sensitive to environmental variation(based on threshold indicator taxa analysis))  
+    * 10. FungalTraits.xlsx ()  
     
 *List of phylogenetic tree data files (.newick)*  
 
@@ -30,15 +32,15 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 
 *List of R-scripts*
 
-    * 1. Figure_1.tiff (Draw in ppt)
+    * 1. Figure 1.pdf
     * 2. Figure 2 & Table S3 & Table S4 (Field survey part).R  
     * 3. Figure 3.R  
     * 4. Figure 4 & Table S6.R  
-    * 5. Figure_S1.R  
-    * 6. Figure_S2.R 
-    * 7. Figure_S3.R  
-    * 8. Figure_S4.R  
-    * 9. Figure_S5.R  
+    * 5. Figure S1.R  
+    * 6. Figure S2.R 
+    * 7. Figure S3.R  
+    * 8. Figure S4.R  
+    * 9. Figure S5.R  
     * 10. Table S3 & Table S5 (Greenhouse exp. part).R  
     Ohter codes
     * 01_Calculation of asymptotic exponential Shannon diversity.R  
