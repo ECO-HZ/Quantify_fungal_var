@@ -12,6 +12,9 @@ library(effectsize)
 library(glmm.hp)
 library(effects)
 library(patchwork)
+library(ggtext)
+library(PieGlyph)
+library(TITAN2)
 
 # Custom style
 mytheme = theme(panel.background = element_rect(fill='white', colour='black'),
@@ -98,8 +101,8 @@ performance::r2(Final_model)
 ################################## Figure 4a ###################################
 # Obtaining standardized regression coefficients and their 95% CI
 Final_model <- lm(Effect_size ~ Fun_Di_log + Phy_Di_log + Soil_N + 
-                   Soil_ph + Tave + Wcont + Fun_Di_log:Soil_N + Fun_Di_log:Tave + 
-                   Fun_Di_log:Wcont + Phy_Di_log:Tave + Phy_Di_log:Wcont, data = total_data)
+                    Soil_ph + Tave + Wcont + Fun_Di_log:Soil_N + Fun_Di_log:Tave + 
+                    Fun_Di_log:Wcont + Phy_Di_log:Tave + Phy_Di_log:Wcont, data = total_data)
 
 MegaModelSummary <- as.data.frame(effectsize::effectsize(Final_model))[-1,]
 MegaModelSummary$Parameter2 <- c("Funct-Dist", "Phylo-Dist", "Soil N", "Soil pH", "Temperature", "Wcont", 
@@ -121,12 +124,12 @@ ggplot(MegaModelSummary, aes(x = Parameter2, y = Std_Coefficient, fill = Group))
   geom_text(aes(y = CI_high, label = paste("italic(p)==", `p.adj`)),
             parse = TRUE, hjust = -0.4, vjust = 0.4, size = 4) + 
   #annotate("text", x = 11.7, y = 0.08,
-  #         label = expression("Best model: " * italic(R)^2 * "= 0.31"), colour = "black", size = 4) + 
+  #         label = expression("Best model: " * italic(R)^2 * "= 0.306"), colour = "black", size = 4) + 
   annotate("text", x = 9.0, y = 0.12,
            label = expression(italic(p) * " < 0.001"), colour = "black", size = 3.5) + 
   labs(x = '', 
        y = 'Standard regression coefficients', 
-       title = "Best model: <i>R</i><sup>2</sup> = 0.31", tag = "(a)") +  
+       title = "Best model: <i>R</i><sup>2</sup> = 0.306", tag = "(a)") +  
   theme_classic() + coord_flip() +  
   scale_fill_manual(values = c("#436C88","#49A3A4","#C2887D","#F0C986")) +
   #scale_fill_manual(values = c("#408EA8","#58C5BF","#FFD15C","#FF8942")) +
@@ -135,8 +138,8 @@ ggplot(MegaModelSummary, aes(x = Parameter2, y = Std_Coefficient, fill = Group))
         axis.title.x =  element_text(color = "black", size = 14),
         legend.text = element_text(size = 9, color = "black"),
         plot.title = element_textbox(size = 12, color = "black", fill = "white",     
-          box.color = "black", width = grid::unit(1, "npc"),padding = margin(5, 5, 5, 5),  
-          margin = margin(b = 5), halign = 0.5,linetype = "solid"),
+                                     box.color = "black", width = grid::unit(1, "npc"),padding = margin(5, 5, 5, 5),  
+                                     margin = margin(b = 5), halign = 0.5,linetype = "solid"),
         plot.margin = margin(0.5,1.5,0.5,1.5, unit = "cm"),
         legend.position = 'none',legend.title = element_blank(),legend.key = element_blank(),
         plot.tag = element_text(size = 14, face = "bold")) +
@@ -179,8 +182,9 @@ ggplot()+
         axis.line.x = element_line(linewidth = NA)) +
   labs(y = "Relative effect of estimates (%)") -> p4b; p4b
 
-################################################################################
+################################## Figure 4b ###################################
 eff_mod <- effect("Phy_Di_log:Tave", Final_model, xlevels = 5)
+#plot(eff_mod)
 eff_mod_data <- data.frame(eff_mod)
 
 # backtransform
@@ -204,13 +208,170 @@ ggplot()+
   scale_fill_manual(values = c("#184C3F","#6CB2AA", "#E4CB8F", "#BF8E43", "#57320F")) +
   scale_color_manual(values = c("#184C3F","#6CB2AA", "#E4CB8F", "#BF8E43", "#57320F"), name = expression("Phylo-Dist (log"[10]*")")) +
   #annotate("text", label = expression(italic(p) == 0.021), x = 15, y = 0.25, size = 4) + 
-  mytheme + theme(legend.position = c(0.8,0.28)) -> P4b
+  mytheme + theme(legend.position = c(0.8,0.28)) -> P4b; P4b
 
-# combination
-(p4a+p4b) + plot_layout(widths = c(0.7,0.3)) -> P4a
 
-(P4a|P4b) + plot_layout(widths = c(0.6,0.4))
+################################## Figure 4c ###################################
+# Soil sample abundance information
+Field_otu_raw <- read.xlsx("Field_data_raw_ASVs.xlsx", sheet = "raw_otu", colNames = T, rowNames = T)
+Field_otu_raw <- Field_otu_raw[ ,Field_group$Sample_ID]
+Field_otu_raw[1:6, 1:6]
+colSums(Field_otu_raw)
+dim(Field_otu_raw)
+#View(as.data.frame(rowSums(Field_otu_raw)))
+
+# ASVs levels
+Field_otu_raw_removed <- as.data.frame(t(Field_otu_raw))
+Field_otu_raw_removed2 = Field_otu_raw_removed
+Field_otu_raw_removed2[Field_otu_raw_removed2>0] <- 1
+Field_otu_raw_removed <- Field_otu_raw_removed[, which(colSums(Field_otu_raw_removed2) >= 3)]
+colSums(Field_otu_raw_removed)
+dim(Field_otu_raw_removed)
+
+set.seed(1234)
+colnames(Field_group)
+ENV_test <- Field_group[rownames(Field_otu_raw_removed),c("Sample_ID","Effect_size")]
+ENV_test$Sample_ID = NULL 
+titan_ENV_ASVs <- titan(env = ENV_test, txa = Field_otu_raw_removed, numPerm = 250, nBoot = 500, ncpus = 4)
+titan_effect_size_ASVs = data.frame(titan_ENV_ASVs$sppmax) %>% filter(filter != 0) %>%
+  arrange(maxgrp, zenv.cp)
+
+# save results
+#write.csv(titan_effect_size_ASVs, "titan_effect_size_ASVs.csv")
+#load("titan_ENV_ASVs.RData")
+#plot_taxa_ridges(titan_ENV_ASVs)
+
+# loading responsive taxa information
+responed_ASVs <- read.xlsx("Datasets S1.xlsx", sheet = "responed_ASVs", rowNames = F, colNames = T)
+colnames(responed_ASVs)
+unique(responed_ASVs$guild)
+
+p1_sum_posit <- responed_ASVs %>% filter(filter == "Z+") %>% group_by(phylum, host_spec) %>%
+  summarise(sum_count = sum(n()))
+
+phylum_order <- p1_sum_posit %>%
+  group_by(phylum) %>%
+  summarise(total = sum(sum_count)) %>%
+  arrange(total) %>%
+  pull(phylum)
+
+p1_sum_posit$phylum <- factor(p1_sum_posit$phylum, levels = phylum_order)
+
+
+ggplot(data = p1_sum_posit,aes(x=phylum,y=sum_count,fill=host_spec))+
+  geom_bar(stat = "identity",position = "stack", color = "black") + 
+  labs(y = "Number of ASVs", x = "Phylum", title = "Positive (Z+) response taxa", tag = "(c)") + 
+  theme_minimal() + 
+  theme(panel.grid=element_blank(), 
+        plot.title = element_textbox(size = 12, color = "black", fill = "white",     
+                                     box.color = "black", width = grid::unit(1, "npc"),padding = margin(5, 5, 5, 5),  
+                                     margin = margin(b = 5), halign = 0.5,linetype = "solid"),
+        plot.margin = margin(0.5,1.5,0.5,1.5, unit = "cm"),
+        axis.line.x = element_line(colour = "black"),
+        axis.title.y = element_text(colour = "black", size = 14),
+        axis.title.x = element_text(colour = "black", size = 14),
+        axis.text.y = element_text(colour = "black", size = 12),
+        axis.text.x = element_text(colour = "black", size = 12),
+        axis.ticks = element_line(colour = "black"),
+        plot.tag = element_text(size = 14, face = "bold"),
+        legend.position = "none") + 
+  scale_fill_manual(values = c("Core" = "#1C3C63", "Generalist" = "#D3D5D4", "Specialist" = "#93C8C0")) +    
+  scale_y_continuous(limits = c(0,330), expand = c(0,0)) + 
+  coord_flip() -> p1; p1
+
+
+p2_sum_posit <- responed_ASVs %>% filter(filter == "Z+") %>% group_by(phylum, guild) %>%
+  summarise(sum_count = sum(n()), prediction = 0.1)
+
+p2_sum_posit$phylum <- factor(p2_sum_posit$phylum, levels = phylum_order)
+
+ggplot(data = p2_sum_posit, aes(x = phylum, y = "Guild", fill = guild))+
+  # Vertical line of lollipop
+  #geom_segment(aes(yend = 0, xend = phylum))+
+  # Pies-charts at the centre of the lollipop
+  geom_pie_glyph(aes(pie_group = phylum), slices = 'guild', values = 'sum_count',
+                 radius = 0.3, colour = 'black')+
+  # Axis titles
+  labs(y = 'Proportion (%)', x = 'Patient')+
+  # Colours for sectors of the pie-chart
+  scale_fill_manual(name = "Guild", 
+                    values = c('Plant pathogen' = '#C74D26', 'Arbuscular mycorrhiza' = '#2C6344', 
+                               'Others' = '#308194', 'Saprotroph' = '#61496D'))+
+  theme_minimal() + 
+  theme(panel.grid=element_blank(), 
+        legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.title.x = element_text(colour = "black", size = 14),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(colour = "black", size = 12),
+        axis.ticks = element_blank()) + 
+  coord_flip() -> p2; p2
+
+
+
+## 
+p3_sum_negati <- responed_ASVs %>% filter(filter == "Z-") %>% group_by(phylum, host_spec) %>%
+  summarise(sum_count = sum(n()))
+
+negati_order <- p3_sum_negati %>%
+  group_by(phylum) %>%
+  summarise(total = sum(sum_count)) %>%
+  arrange(total) %>%
+  pull(phylum)
+
+p3_sum_negati$phylum <- factor(p3_sum_negati$phylum, levels = negati_order)
+
+
+ggplot(data = p3_sum_negati,aes(x=phylum,y=sum_count,fill=host_spec))+
+  geom_bar(stat = "identity",position = "stack", color = "black") + 
+  labs(y = "Number of ASVs", x = "Phylum", title = "Positive (Z-) response taxa") + 
+  theme_minimal() + 
+  theme(panel.grid=element_blank(), 
+        plot.title = element_textbox(size = 12, color = "black", fill = "white",     
+                                     box.color = "black", width = grid::unit(1, "npc"),padding = margin(5, 5, 5, 5),  
+                                     margin = margin(b = 5), halign = 0.5,linetype = "solid"),
+        plot.margin = margin(0.5,1.5,0.5,1.5, unit = "cm"),
+        axis.line.x = element_line(colour = "black"),
+        axis.title.y = element_text(colour = "black", size = 14),
+        axis.title.x = element_text(colour = "black", size = 14),
+        axis.text.y = element_text(colour = "black", size = 12),
+        axis.text.x = element_text(colour = "black", size = 12),
+        axis.ticks = element_line(colour = "black"),
+        legend.position = c(0.85,0.35)) + 
+  scale_fill_manual(values = c("Core" = "#1C3C63", "Generalist" = "#D3D5D4", "Specialist" = "#93C8C0")) +   
+  scale_y_continuous(limits = c(0,600), expand = c(0,0)) + 
+  coord_flip() -> p3; p3
+
+
+p4_sum_negati <- responed_ASVs %>% filter(filter == "Z-") %>% group_by(phylum, guild) %>%
+  summarise(sum_count = sum(n()), prediction = 0.1)
+
+p4_sum_negati$phylum <- factor(p4_sum_negati$phylum, levels = negati_order)
+
+ggplot(data = p4_sum_negati, aes(x = phylum, y = "Guild", fill = guild))+
+  # Vertical line of lollipop
+  #geom_segment(aes(yend = 0, xend = phylum))+
+  # Pies-charts at the centre of the lollipop
+  geom_pie_glyph(aes(pie_group = phylum), slices = 'guild', values = 'sum_count',
+                 radius = 0.3, colour = 'black')+
+  # Axis titles
+  labs(y = 'Proportion (%)', x = 'Patient')+
+  # Colours for sectors of the pie-chart
+  scale_fill_manual(name = "Guild", 
+                    values = c('Plant pathogen' = '#C74D26', 'Arbuscular mycorrhiza' = '#2C6344', 
+                               'Others' = '#308194', 'Saprotroph' = '#61496D'))+
+  theme_minimal() + 
+  theme(panel.grid=element_blank(), 
+        legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.title.x = element_text(colour = "black", size = 14),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(colour = "black", size = 12),
+        axis.ticks = element_blank()) + 
+  coord_flip() -> p4; p4
+
+
+(p1|p2|p3|p4) + plot_layout(widths = c(0.4,0.1,0.4,0.1)) -> P4c; P4c 
 
 ### Notice that,
 ### For more picture details, we have further adjusted it in Adobe illustrator.
-
