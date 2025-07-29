@@ -11,9 +11,32 @@ library(ggpubr)
 library(ggplot2)
 library(dplyr)
 library(grid)  
+library(ggtext)
 library(ggstar) 
 library(flextable)
 library(officer)
+
+# Custom style
+mytheme <- theme_bw() + 
+  theme(panel.background = element_rect(fill = "transparent", color = NA),
+        plot.background = element_rect(fill = "transparent", color = NA),
+        legend.background = element_rect(fill = "transparent", color = NA),
+        legend.box.background = element_rect(fill = "transparent", color = NA),
+        legend.position = "none",
+        legend.key = element_blank(),
+        panel.grid=element_blank(), 
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.ticks = element_line(color='black'),
+        axis.line = element_line(colour = "black"), 
+        axis.title.x = element_text(colour='black', size=13),
+        axis.title.y = element_text(colour='black', size=13),
+        axis.text = element_text(colour='black',size=11),
+        plot.tag = element_text(size = 14, face = "bold"),
+        plot.title = element_textbox(
+          size = 14, color = "black", fill = "grey90",
+          box.color = "grey50",padding = margin(5, 5, 5, 5), margin = margin(b = 0),       
+          halign = 0.5, width = grid::unit(1, "npc"))) 
 
 ########################## Table S3 (Field survey) #############################
 # Soil sample grouping information
@@ -62,12 +85,12 @@ Table_S3_PERMANOVA <- vegan::adonis2(t(fungi_relative) ~ Family/Species + Site +
                                        Family/Species:Site + Family/Species:Years + Years:Site, by = "term", method = "bray",
                                      data = Field_group_scale, permutations = 9999, parallel = 12)
 
-Table_S3_PERMANOVA_field <- as.data.frame(Table_S3_PERMANOVA)[1:10,]
-rownames(Table_S3_PERMANOVA_field)[1:9] <- c("Year", "Site", "Family", "Species", "Year × Family", "Site × Family", "Year × Site × Family", "Years × Species", "Site × Species")
-Table_S3_PERMANOVA_field$R2_per <- paste0(round(Table_S3_PERMANOVA_field$R2*100,1),"%")
+Table_S3_PERMANOVA_field <- as.data.frame(Table_S3_PERMANOVA)[1:11,]
+rownames(Table_S3_PERMANOVA_field)[1:10] <- c("Family", "Site", "Year", "Species", "Family × Site", "Family × Year", "Site × Year", "Family × Site × Year", "Species × Site", "Species × Year")
+#Table_S3_PERMANOVA_field$R2_per <- paste0(round(Table_S3_PERMANOVA_field$R2*100,1),"%")
 Table_S3_PERMANOVA_field$R2 <- round(Table_S3_PERMANOVA_field$R2,3)
 Table_S3_PERMANOVA_field$`F` <- round(Table_S3_PERMANOVA_field$`F`,2)
-print(Table_S3_PERMANOVA_field[c(1:6,8,9,7,10), c(1,3,6,4,5)]) # reorder
+print(Table_S3_PERMANOVA_field[c(1:7,9,10,8,11), ]) # reorder
 
 ########################## Table S4 (Field survey) #############################
 total_data <- Field_group_scale
@@ -78,7 +101,6 @@ mod_multifactor <- adonis2(t(fungi_relative) ~ Phy_Di_log + Fun_Di_log + Soil_ph
                              Fun_Di_log:Tave + Fun_Di_log:Precipitation + Fun_Di_log:Soil_ph + Fun_Di_log:Wcont + Fun_Di_log:Soil_N, 
                            data = total_data, permutations = 9999, parallel = 10, by = "terms")
 mod_multifactor
-
 AICcPermanova::AICc_permanova2(mod_multifactor)
 mod_full_results <- as.data.frame(AICcPermanova::AICc_permanova2(mod_multifactor)); mod_full_results$form = "mod0 ~ full"
 
@@ -144,13 +166,13 @@ print(mod_all_sub) # mod4 was the best model
 ########################## Table S4 (Field survey) #############################
 Table_S4_PERMANOVA_field <- as.data.frame(Simplified_mod4)
 Table_S4_PERMANOVA_field$R2_per <- paste0(round(Table_S4_PERMANOVA_field$R2*100,1),"%")
-Table_S4_PERMANOVA_field$R2 <- round(Table_S4_PERMANOVA_field$R2,3)
+Table_S4_PERMANOVA_field$R2 <- round(Table_S4_PERMANOVA_field$R2,4)
 Table_S4_PERMANOVA_field$`F` <- round(Table_S4_PERMANOVA_field$`F`,2)
 rownames(Table_S4_PERMANOVA_field)[1:13] <- c("Phylo-Dist", "Funct-Dist", "Soil pH", "Wcont",
                                               "Soil N", "Temperature", "Precipitation", 
                                               "Phylo-Dist × Temperature", "Phylo-Dist × Precipitation", "Phylo-Dist × Soil pH",
                                               "Funct-Dist × Temperature", "Funct-Dist × Soil pH", "Funct-Dist × Wcont")
-print(Table_S4_PERMANOVA_field[c(1:14), c(1,3,6,4,5)]) # reorder
+print(Table_S4_PERMANOVA_field[c(1:14), ]) # reorder
 
 ########################## Figure 2a (Field survey) ############################
 Figure_2a <- Table_S4_PERMANOVA_field[c(1:13), c(1,3,6,4,5)]
@@ -172,19 +194,12 @@ flextable(table_data) %>%
   set_table_properties(layout = "autofit") %>% 
   border_remove() %>%               
   align(j = 1, align = "left", part = "all") %>%   
-  align(j = 2:4, align = "center", part = "all") 
+  align(j = 2:4, align = "center", part = "all") %>%   
   italic(j = 3:4, part = "header") %>%     
   hline_top(part = "all", border = fp_border(width = 1.5)) %>% 
   hline_bottom(part = "all", border = fp_border(width = 1.5))
-  #set_header_labels(R2 = "R²") %>% 
-  hline(i = 1, part = "header", border = fp_border(width = 1.5)) 
-
-
-tab <- ggtexttable(table_data, theme = ttheme("blank"), rows = NULL) %>%
-  tab_add_hline(at.row = c(1, 2), row.side = "top", linewidth = 3, linetype = 1) %>%
-  tab_add_hline(at.row = c(15), row.side = "bottom", linewidth = 3, linetype = 1) #%>%
-#tab_add_vline(at.column = 2:tab_ncol(tab), column.side = "left", from.row = 2, linetype = 2)
-tab
+#set_header_labels(R2 = "R²") %>% 
+hline(i = 1, part = "header", border = fp_border(width = 1.5)) 
 
 ########################## Figure 2b (Field survey) ############################
 set.seed(1234)
@@ -198,12 +213,11 @@ field_plot_data <- merge(field_plot_data, Field_group, by = 'Sample_ID', all.x =
 field_plot_data$Years <- as.factor(field_plot_data$Years)
 field_plot_data$Site <- factor(field_plot_data$Site, levels = c("Guangzhou", "Guilin", "Changsha", "Wuhan", "Zhengzhou", "Tai'an"))
 
-# Vector fitting with PCoA
+# Vector fitting with NMDS
 # Create interaction variable
 Field_group_scale$Phy_Tave <- Field_group_scale$Phy_Di_log * Field_group_scale$Tave
 Field_group_scale$Phy_Prec <- Field_group_scale$Phy_Di_log * Field_group_scale$Precipitation
 Field_group_scale$Phy_Soil_ph <- Field_group_scale$Phy_Di_log * Field_group_scale$Soil_ph
-#Field_group_scale$Phy_Wcont <- Field_group_scale$Phy_Di_log * Field_group_scale$Wcont
 
 Field_group_scale$Fun_Tave <- Field_group_scale$Fun_Di_log * Field_group_scale$Tave
 Field_group_scale$Fun_Soil_ph <- Field_group_scale$Fun_Di_log * Field_group_scale$Soil_ph
@@ -255,7 +269,7 @@ ggplot(field_plot_data, aes(NMDS1, NMDS2)) +
             aes(x = xend, y = yend, label = Variable),
             size = 4, hjust = 0.5, vjust = -0.5) +
   annotate("text", x = -Inf, y = Inf, label = "Stress = 0.19", 
-           hjust = -0.1, vjust = 1.5,size = 4.2, color = "black")
+           hjust = -0.1, vjust = 1.5,size = 4.2, color = "black") -> P2a
 
 print(arrow_df)
 
