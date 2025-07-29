@@ -1,5 +1,5 @@
 ################################################################################
-################## Table S3 & Table S5 (Greenhouse exp. part) ##################
+############ Table S3 & Table S4 & Table S5 (Greenhouse exp. part) #############
 ################################################################################
 
 # Loading R packages
@@ -47,7 +47,7 @@ rownames(Table_Fig_S3) <- c("Family", "Species")
 Table_Fig_S3$df <- c("15,108", "38,108")
 print(Table_Fig_S3[ ,c("df","F","Pr(>F)","p.adj")])
 
-###################### Table S3 (Greenhouse exp. part) #########################
+###################### Table S4 (Greenhouse exp. part) #########################
 # Permutational multivariate analysis of variance to explore the effects of plant families and species on fungal composition
 # Composition of rhizosphere overall fungi (Bray-Curtis distance matrix) in Greenhouse experiment
 Green_fungi_relative <- decostand(Green_otu_raw, method = "total", MARGIN = 2)
@@ -162,5 +162,3 @@ Table_S5_mantel_Green$Mantel_R <- round(Table_S5_mantel_Green$Mantel_R, 2)
 # p.adjust
 Table_S5_mantel_Green$p.adj <- p.adjust(Table_S5_mantel_Green$P_value, method = "holm")
 print(Table_S5_mantel_Green[,c(6,4,2,3,7)])
-
-
