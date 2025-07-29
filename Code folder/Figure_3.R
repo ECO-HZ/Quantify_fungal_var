@@ -51,15 +51,15 @@ total_data$Fun_Di_log <- log10(total_data$Fun_Di)
 # Pearson correlation analyses
 cor.test(subset(total_data, Years == "2018")$Fungal_green_Di, subset(total_data, Years == "2018")$Fungal_field_Di)
 summary(lm(subset(total_data, Years == "2018")$Fungal_field_Di ~ subset(total_data, Years == "2018")$Fungal_green_Di))
-# r = 0.08, p = 0.403
+# R2 = 0.007, p = 0.403
 
 cor.test(subset(total_data, Years == "2020")$Fungal_green_Di, subset(total_data, Years == "2020")$Fungal_field_Di)
 summary(lm(subset(total_data, Years == "2020")$Fungal_field_Di ~ subset(total_data, Years == "2020")$Fungal_green_Di))
-# r = -0.17, p = 0.054
+# R2 = 0.028, p = 0.054
 
 cor.test(subset(total_data, Years == "2021")$Fungal_green_Di, subset(total_data, Years == "2021")$Fungal_field_Di)
 summary(lm(subset(total_data, Years == "2021")$Fungal_field_Di ~ subset(total_data, Years == "2021")$Fungal_green_Di))
-# r = -0.08, p = 0.368
+# R2 = 0.006, p = 0.368
 
 # Mean ± 1SE
 total_data_mean <- total_data %>% dplyr::group_by(Site, Years, Latitude) %>%
@@ -67,12 +67,17 @@ total_data_mean <- total_data %>% dplyr::group_by(Site, Years, Latitude) %>%
                    Field_Di_se = sd(Fungal_field_Di, na.rm = TRUE) / sqrt(n()),
                    Green_Di = mean(Fungal_green_Di, na.rm = TRUE),
                    Green_Di_se = sd(Fungal_green_Di, na.rm = TRUE) / sqrt(n()),
-                   plant_richness = n()) %>%
+                   plant_richness = n(),
+                   site_pool = mean(Site_pool)) %>%
   as.data.frame()
 
 
 cor.test(total_data_mean$Field_Di, total_data_mean$plant_richness)
 plot(total_data_mean$plant_richness, total_data_mean$Field_Di)
+
+cor.test(total_data_mean$Field_Di, total_data_mean$site_pool)
+plot(total_data_mean$site_pool, total_data_mean$Field_Di)
+
 # Merge data
 total_data2 <-  merge(total_data, total_data_mean, by = c("Years", "Site"))
 
@@ -94,13 +99,13 @@ ggplot() +
   ggpmisc::stat_poly_eq(data = subset(total_data, Years == "2018"), 
                         aes(x =Fungal_green_Di , y = Fungal_field_Di, 
                             label = paste(..rr.label.., ..p.value.label.., sep = "~~~")), 
-                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.y.npc = "top") + 
+                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.y.npc = "top", rr.digits = 3) + 
   #annotate("text", x = 0.68, y = 0.60, label = bquote(atop(italic(r) == 0.08, italic(p) == 0.403)), size = 4) + 
   labs(y = "Composition distinctiveness\nestimated in field survey", x = NULL, tag = "(a)", title = "2018") + 
   scale_color_manual(values = c("2018" = "#40B0A6", "2020" = "#E1BE6A", "2021" = "#A38E89")) + 
   scale_fill_manual(values = c("2018" = "#40B0A6", "2020" = "#E1BE6A", "2021" = "#A38E89")) + 
   scale_x_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.94)) +
-  scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.94)) -> p2a;p2a
+  scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.94)) -> p3a;p3a
 
 
 ggplot() + 
@@ -117,7 +122,7 @@ ggplot() +
   ggpmisc::stat_poly_eq(data = subset(total_data, Years == "2020"), 
                         aes(x =Fungal_green_Di , y = Fungal_field_Di, 
                             label = paste(..rr.label.., ..p.value.label.., sep = "~~~")), 
-                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.y.npc = "top") + 
+                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.y.npc = "top", rr.digits = 3) + 
   theme(axis.text.y = element_blank(),
         plot.title = element_textbox(size = 14, color = "black", fill = "#E1BE6A",
           box.color = "grey50",padding = margin(5, 5, 5, 5), margin = margin(b = 0),       
@@ -128,7 +133,7 @@ ggplot() +
   scale_color_manual(values = c("2018" = "#40B0A6", "2020" = "#E1BE6A", "2021" = "#A38E89")) + 
   scale_fill_manual(values = c("2018" = "#40B0A6", "2020" = "#E1BE6A", "2021" = "#A38E89")) + 
   scale_x_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) +
-  scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) -> p2b;p2b
+  scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) -> p3b;p3b
 
 
 ggplot() + 
@@ -149,15 +154,15 @@ ggplot() +
   ggpmisc::stat_poly_eq(data = subset(total_data, Years == "2021"), 
                         aes(x =Fungal_green_Di , y = Fungal_field_Di, 
                             label = paste(..rr.label.., ..p.value.label.., sep = "~~~")), 
-                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.y.npc = "top") + 
+                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.y.npc = "top", rr.digits = 3) + 
   labs(x = NULL, y = NULL, title = "2021")+ 
   #annotate("text", x = 0.68, y = 0.60, label = bquote(atop(italic(r) == -0.08, italic(p) == 0.368)), size = 4) + 
   scale_color_manual(values = c("2018" = "#40B0A6", "2020" = "#E1BE6A", "2021" = "#A38E89")) + 
   scale_fill_manual(values = c("2018" = "#40B0A6", "2020" = "#E1BE6A", "2021" = "#A38E89")) + 
   scale_x_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) +
-  scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) -> p2c;p2c
+  scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) -> p3c;p3c
 
-(p2a|p2b|p2c) -> Fig_3a; Fig_3a
+(p3a|p3b|p3c) -> Fig_3a; Fig_3a
 
 
 ################################## Figure 3b ###################################
@@ -194,12 +199,18 @@ mean_size <- total_data %>% dplyr::group_by(Latitude, Years) %>%
                    Effect_se = sd(Effect_size, na.rm = TRUE) / sqrt(n()),
                    Effect_Funct_DI = mean(Fun_Di_log, na.rm = TRUE),
                    Effect_Phylo_DI = mean(Phy_Di_log, na.rm = TRUE),
-                   plant_richness = n()) %>%
+                   Fungi_DI_mean = mean(Fungal_field_Di, na.rm = TRUE),
+                   site_pool = mean(Site_pool)) %>%
   dplyr::left_join(final_result_t, by = c("Latitude", "Years"))
+
+##
+cor.test(mean_size$Fungi_DI_mean, mean_size$Effect_Funct_DI)
+cor.test(mean_size$Fungi_DI_mean, mean_size$Effect_Phylo_DI)
+cor.test(mean_size$Fungi_DI_mean, mean_size$site_pool)
 
 cor.test(mean_size$Effect_mean, mean_size$Effect_Funct_DI)
 cor.test(mean_size$Effect_mean, mean_size$Effect_Phylo_DI)
-cor.test(mean_size$Latitude, mean_size$plant_richness)
+cor.test(mean_size$Effect_mean, mean_size$site_pool)
 
 colnames(total_data)
 mean_change <- total_data %>% dplyr::group_by(Latitude, Years) %>%
@@ -217,6 +228,9 @@ total_data$Years <- as.factor(total_data$Years)
 bestFitM2(data= mean_size, x= "Latitude", y = "Effect_mean")
 FitM(data= mean_size, x= "Latitude", y = "Effect_mean", model = "line2P")
 
+bestFitM2(data= total_data, x= "Latitude", y = "Effect_size")
+FitM(data= total_data, x= "Latitude", y = "Effect_size", model = "line3P")
+
 # plot
 ggplot() + 
   geom_smooth(data = mean_size, mapping = aes(x = Latitude, y = Effect_mean),
@@ -233,7 +247,9 @@ ggplot() +
   geom_star(data = subset(mean_size, Years == 2021 & Latitude == 30.5), mapping = aes(x = Latitude+0.10, y = Effect_mean),size = 2.8, show.legend = F, color = "#A38E89", fill = "white", starshape = 15) + 
   ggpmisc::stat_poly_eq(data = mean_size, aes(x =Latitude , y = Effect_mean, 
                             label = paste(..rr.label.., ..p.value.label.., sep = "~~~")), 
-                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.x = 0.1, label.y = 0.2) + 
+                        formula = y ~ x, parse = TRUE, size = 4, color = "black", label.x = 0.1, label.y = 0.2, rr.digits = 3) + 
+  #geom_smooth(data = total_data, mapping = aes(x = Latitude, y = Effect_size),
+  #            method = "lm", formula = y ~ poly(x, 2), se = F, color = "black") +
   scale_starshape_manual(values = c("23.1" = 13, "25.2" = 11, "27.9" = 23, "30.5" = 15, "34.6" = 5, "36.2" = 28)) +
   #scale_color_manual(values = c("2018" = "#2D6FA6", "2020" = "#CA5516", "2021" = "#40A47B")) + 
   #scale_fill_manual(values = c("2018" = "#2D6FA6", "2020" = "#CA5516", "2021" = "#40A47B")) + 
@@ -250,10 +266,10 @@ ggplot() +
                        Ln ~ "(" ~ frac(Fungi-dist["estimated in field survey"], 
                                        Fungi-dist["estimated in greenhouse experiment"]) ~ ")")),
        tag = "(b)") +
-  annotate("segment",x = 37.3, xend = 37.3, y = 0, yend = 0.2,  
-           arrow = arrow(length = unit(0.2, "cm"), type = "closed"),color = "#A5CCC9", size = 2) +
-  annotate("segment",x = 37.3, xend = 37.3, y = 0, yend = -0.3,  
-           arrow = arrow(length = unit(0.2, "cm"), type = "closed"),color = "#D48286", size = 2) -> Fig_3b; Fig_3b
+  annotate("segment",x = 37.3, xend = 37.3, y = 0.01, yend = 0.2,  
+           arrow = arrow(length = unit(0.2, "cm"), type = "closed"),color = "black", size = 1) +
+  annotate("segment",x = 37.3, xend = 37.3, y = -0.01, yend = -0.3,  
+           arrow = arrow(length = unit(0.2, "cm"), type = "closed"),color = "black", size = 1) -> Fig_3b; Fig_3b
   
 # combination
 Fig_3b <- Fig_3b + plot_layout(widths = c(0.8,0.2))
