@@ -30,6 +30,12 @@ Field_otu_01[Field_otu_01 > 0] = 1
 fd <- beta.pair(Field_otu_01, index.family = "sorensen")
 Sim_dist_field_mean <- fd$beta.sim
 
+# bray-Curtis
+Field_relative <- decostand(Field_otu_raw, method = "total", MARGIN = 2)
+colSums(Field_relative)
+BC_dist_field_mean <- vegdist(t(Field_relative), method = 'bray')
+
+
 ############################# Greenhouse experiment ############################
 # Soil sample grouping information in greenhouse exp.
 Green_group <- read.xlsx("Greenhouse_data_group.xlsx", sheet = "green_group", colNames = T, rowNames = T)
@@ -47,12 +53,17 @@ Green_otu_01[Green_otu_01 > 0] <- 1
 fd <- beta.pair(Green_otu_01, index.family = "sorensen")
 Sim_dist_green <- fd$beta.sim
 
+# bray-Curtis
+Green_fungi_relative <- decostand(Green_otu_raw, method = "total", MARGIN = 2)
+colSums(Green_fungi_relative)
+BC_dist_green <- vegdist(t(Green_fungi_relative), method = 'bray')
+
 # note:
 # To match the rhizosphere fungal data with the corresponding species from the 
 # field survey, we calculated the mean pairwise dissimilarity values among 
 # species (averaged across three replicate samples).
 
-Green_dist <- as.matrix(Sim_dist_green)
+Green_dist <- as.matrix(Sim_dist_green) 
 Green_dist_data <- reshape2::melt(Green_dist, varnames = c("Sample_ID_A", "Sample_ID_B"),
                                   value.name = "dist", na.rm = T)
 colnames(Green_dist_data)[1] <- "Sample_ID"
@@ -180,6 +191,7 @@ for (Y in Years_names) {
   }
 }
 
-
+# save the results
 head(Final_total_distinct)
 #write.xlsx(Final_total_distinct, "Field_Distinctiveness.xlsx")
+
