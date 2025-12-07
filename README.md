@@ -13,14 +13,10 @@ All data will be made available upon acceptance of the manuscript.
 
     * 1. Field_data_raw_ASVs.xlsx  
     * 2. Field_data_group.xlsx  
-    * 3. Field_fungi_Flattening.xlsx
-    * 4. Greenhouse_data_raw_ASVs.xlsx  
-    * 5. Greenhouse_data_group.xlsx  
-    * 6. Greenhouse_fungi_Flattening.xlsx  
-    * 7. Site_information_seed.xlsx  
-    * 8. traits_mean.xlsx
-    * 9. Datasets S1.xlsx (Informations of responsive ASVs that were sensitive to environmental variation(based on threshold indicator taxa analysis))  
-    * 10. FungalTraits.xlsx (The FungalTraits database (Põlme, S., Abarenkov, K., Henrik Nilsson, R., Lindahl, B.D., Clemmensen, K.E., Kauserud, H., et al. 2021. "FungalTraits: a user-friendly traits database of fungi and fungus-like stramenopiles." Fungal Diversity 105: 1-16.))  
+    * 3. Greenhouse_data_raw_ASVs.xlsx  
+    * 4. Greenhouse_data_group.xlsx  
+    * 5. Site_information_seed.xlsx  
+    * 6. traits_mean.xlsx
     
 *List of phylogenetic tree data files (.newick)*  
 
@@ -33,15 +29,16 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 *List of R-scripts*
 
     * 1. Figure 1.pdf
-    * 2. Figure 2 & Table S3 & Table S4 (Field survey part).R  
+    * 2. Figure 2 & Table S2.R  
     * 3. Figure 3.R  
-    * 4. Figure 4 & Table S6.R  
+    * 4. Figure 4 & Table S4.R  
     * 5. Figure S1.R  
     * 6. Figure S2.R 
     * 7. Figure S3.R  
     * 8. Figure S4.R  
     * 9. Figure S5.R  
-    * 10. Table S3 & Table S5 (Greenhouse exp. part).R  
+    * 10. Figure S6.R  
+    * 11. Figure S7 & Table S3.R  
     Ohter codes
     * 01_Calculation of asymptotic exponential Shannon diversity.R  
       All the samples, regardless of number of reads, were well characterized with saturating accumulation curves such that ASV diversity measured in the samples 
@@ -82,13 +79,13 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * RS	                 Root-to-shoot mass ratio (g g-1)
     * Fungal_field_Di	 Fungal compositional distinctiveness estimated in the field
     * Fungal_green_Di	 Fungal compositional distinctiveness estimated in the greenhouse experiment
-    * Fun_Di	         Species functional distinctiveness for each year and site
-    * Phy_Di	         Species phylogenetic distinctiveness for each year and site
-
-**Data-specific onformation for:** ***Field_fungi_Flattening.xlsx***
-
-    * Abundance table of raw sequencing data of rhizosphere fungi from field survey (rarefied to minimum sample size)
-      
+    * Funct_Di	         Species functional distinctiveness for each year and site
+    * Phylo_Di	         Species phylogenetic distinctiveness for each year and site
+    * PCoA1	          The first PCoA axis of rhizosphere fungal communities of all field soil samples
+    * PCoA2	         The second PCoA axis of rhizosphere fungal communities of all field soil samples
+    * Fungal_Di_field_com	          Fungal compositional distinctiveness estimated in the field based on shared ASVs
+    * Fungal_Di_green_com	          Fungal compositional distinctiveness estimated in the greenhouse experiment based on shared ASVs
+  
 **Data-specific onformation for:** ***Greenhouse_data_raw_ASVs.xlsx***
 
     * Abundance table of raw sequencing data of rhizosphere fungi from greenhouse experiment (not rarefied to minimum sample size)
@@ -104,10 +101,6 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Family	      Family name of research species
     * Origin	      Geographical origin of plants (native vs. exotic)
 
-**Data-specific onformation for:** ***Greenhouse_fungi_Flattening.xlsx***
-
-    * Abundance table of raw sequencing data of rhizosphere fungi from greenhouse experiment (rarefied to minimum sample size)
-    
 **Data-specific onformation for:** ***Site_information_seed.xlsx***
 
     Sheets: sp_site-Information on the location of seed collection of studying species
