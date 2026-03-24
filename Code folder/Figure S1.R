@@ -6,7 +6,8 @@ library(openxlsx)
 library(emmeans)
 
 # Custom style
-mytheme = theme(
+mytheme = theme_classic()+ 
+  theme(
   legend.position = "none",
   panel.grid=element_blank(), 
   strip.background = element_rect(color="black", fill="white", size=0.5, linetype="solid"),
@@ -57,7 +58,7 @@ ggplot() +
               method = "lm", formula = y ~ x, se = F, linetype = 1, size = 1.2) + 
   ggpmisc::stat_poly_eq(data = data_Tave,  mapping = aes(x = Latitude, y = Tave, label = paste(..rr.label.., ..p.value.label.., sep = "~~~")), 
                         formula = y ~ x, parse = TRUE, size = 4, color = "black", label.y.npc = "center") + 
-  theme_bw() + mytheme + 
+  mytheme + 
   theme(legend.position = c(0.85,0.85)) + 
   scale_color_manual(values = c("2018" = "#898EA1", "2020" = "#CF9742", "2021" = "#3A7C72")) + 
   scale_fill_manual(values = c("2018" = "#898EA1", "2020" = "#CF9742", "2021" = "#3A7C72")) + 
@@ -125,7 +126,11 @@ ggplot() +
 data_Soil_N <- Field_group[,c("Origin", "Years" ,"Site", "Latitude", "Soil_N")]
 
 mod4 = lm(Soil_N ~ Years * Latitude, data = data_Soil_N)
+anova(mod4)
 shapiro.test(residuals(mod4))
+
+
+
 mod4_emtrends <- emtrends(mod4, pairwise ~ Years, var = "Latitude")
 test(mod4_emtrends, adjust = "BH")
 
@@ -164,7 +169,6 @@ ggplot() +
               method = "lm", formula = y ~ x, se = F, size = 0.8) + 
   ggpmisc::stat_poly_eq(data_Wcont, mapping = aes(x = Latitude, y = Wcont, color = Years, label = paste(..rr.label.., ..p.value.label.., sep = "~~~")),
                         formula = y ~ x, parse = TRUE, size = 4) +
-  ## all dataset
   geom_smooth(data = data_Wcont, mapping = aes(x = Latitude, y = Wcont), color = "black", 
               method = "lm", formula = y ~ x, se = F, linetype = 1, size = 1.2) + 
   ggpmisc::stat_poly_eq(data = data_Wcont,  mapping = aes(x = Latitude, y = Wcont, label = paste(..rr.label.., ..p.value.label.., sep = "~~~")), 
@@ -177,6 +181,8 @@ ggplot() +
   #scale_x_continuous(expand = expansion(mult = c(0.1, 0.1))) +
   #scale_x_continuous(breaks=c(23.1,25.2,27.9,30.5,34.6,36.2)) + 
   labs(x = NULL, y = "Soil water content (%, sqrt)", tag = "(e)") -> p5; p5
+
+# (p1/p4|p2/p5|p3/p5)
 
 ### Notice that,
 ### For more picture details, we have further adjusted it in Adobe illustrator.
