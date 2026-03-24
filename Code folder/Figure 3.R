@@ -8,12 +8,11 @@ library(dplyr)
 library(ggplot2)
 library(ggstar)
 library(ggtext)
-library(BestFitM)
-#library(ggtrendline)
+library(MuMIn)
 library(patchwork)
 
 # Custom style
-mytheme <- theme_bw() + 
+mytheme <- theme_classic() + 
   theme(panel.background = element_rect(fill = "transparent", color = NA),
         plot.background = element_rect(fill = "transparent", color = NA),
         legend.background = element_rect(fill = "transparent", color = NA),
@@ -54,7 +53,7 @@ cor.test(total_data$Funct_Di_log, total_data$Fungal_Di_field_all, method = "spea
 cor.test(total_data$Phylo_Di_log, total_data$Fungal_Di_field_all, method = "spearman")
 
 mod = lm(Fungal_Di_field_all ~ Fungal_Di_green_all, data = total_data)
-anova(mod)
+Anova(mod)
 AIC(mod)
 AICc(mod)
 summary(mod)
@@ -71,6 +70,18 @@ total_data_mean <- total_data %>% dplyr::group_by(Site, Years, Latitude) %>%
                    site_pool = mean(Site_pool)) %>%
   as.data.frame()
 
+cor.test(total_data_mean$Field_Di, total_data_mean$plant_richness, method = "spearman")
+plot(total_data_mean$plant_richness, total_data_mean$Field_Di)
+
+cor.test(total_data_mean$Field_Di, total_data_mean$Funct_DI, method = "spearman")
+plot(total_data_mean$Funct_DI, total_data_mean$Field_Di)
+
+cor.test(total_data_mean$Field_Di, total_data_mean$Phylo_DI, method = "spearman")
+plot(total_data_mean$Phylo_DI, total_data_mean$Field_Di)
+
+cor.test(total_data_mean$Field_Di, total_data_mean$site_pool, method = "spearman")
+plot(total_data_mean$site_pool, total_data_mean$Field_Di)
+
 # set colors of site
 site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
                  "Wuhan" = "#32B7B2", "Zhengzhou" = "#75A750", "Tai'an" = "#E69F0D")
@@ -84,14 +95,14 @@ ggplot()+
   scale_shape_manual(values = c(24,21,25)) + 
   geom_abline(intercept=0,slope=1 , linetype = 1, color = "#96383E", size = 0.8)+
   mytheme + 
-  geom_smooth(data = total_data, aes(x =Fungal_Di_green_all , y = Fungal_Di_field_all), 
-              method = "lm", formula = y ~ x, color = "black", se = F, linetype = 2, size = 0.8) + 
+  #geom_smooth(data = total_data, aes(x =Fungal_Di_green_all , y = Fungal_Di_field_all), 
+  #            method = "lm", formula = y ~ x, color = "black", se = F, linetype = 2, size = 0.8) + 
   theme_bw() + mytheme + 
   theme(legend.position = "right") + 
-  annotate("segment", x = 0.56, xend = 0.59, y = 0.93, yend = 0.93, size = 1, color = "#96383E") + 
-  annotate("text", x = 0.62, y = 0.93, label = "1:1 line", size = 4) +
-  annotate("segment", x = 0.56, xend = 0.59, y = 0.91, yend = 0.91, size = 1, color = "black") + 
-  annotate("text", x = 0.625, y = 0.91, label = "Model fit", size = 4) + 
+  #annotate("segment", x = 0.56, xend = 0.59, y = 0.93, yend = 0.93, size = 1, color = "#96383E") + 
+  #annotate("text", x = 0.62, y = 0.93, label = "1:1 line", size = 4) +
+  #annotate("segment", x = 0.56, xend = 0.59, y = 0.91, yend = 0.91, size = 1, color = "black") + 
+  #annotate("text", x = 0.625, y = 0.91, label = "Model fit", size = 4) + 
   annotate("text", x = 0.68, y = 0.610, label = "F[1*','*383] < 0.01", parse = TRUE, size = 4) + 
   annotate("text", x = 0.68, y = 0.590, label = "italic(R)^2 < 0.01", parse = TRUE, size = 4) + 
   annotate("text", x = 0.68, y = 0.560, label = "italic(p) == 0.945", parse = TRUE, size = 4) +
@@ -154,7 +165,7 @@ ggplot() +
   geom_errorbar(data = Effect_size_mean, 
                 mapping = aes(x = Site, ymax = Effect_size_mean+Effect_size_se, 
                               ymin=Effect_size_mean-Effect_size_se, color = Years, group = Years),
-                width=0.3,alpha = 1, color = "black", position = position_dodge(width = 0.3))+
+                width = 0, alpha = 1, color = "black", position = position_dodge(width = 0.3))+
   geom_point(data = subset(Effect_size_mean, Years == 2018 & Latitude != 23.1), 
              mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
              position = position_nudge(x = -0.1), size = 2.8, show.legend = FALSE) +
@@ -187,6 +198,8 @@ ggplot() +
   labs(#x = "Latitude (North degrees)", 
     x = NULL,
     y = bquote(atop("Environmental effects", 
-                    Ln ~ "(" ~ frac(Fungi-dist["estimated in field survey"], 
-                                    Fungi-dist["estimated in greenhouse experiment"]) ~ ")")),
+                    Ln ~ "(" ~ frac(Fungi-dist[" estimated in field"], 
+                                    Fungi-dist[" estimated in greenhouse"]) ~ ")")),
     tag = "(b)") -> Figure_3b; Figure_3b
+
+Figure_3a|Figure_3b
