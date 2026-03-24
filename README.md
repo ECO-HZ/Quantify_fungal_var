@@ -39,6 +39,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * 9. Figure S5.R  
     * 10. Figure S6.R  
     * 11. Figure S7.R  
+    
     Ohter codes
     * 01_Calculation of asymptotic exponential Shannon diversity.R  
       All the samples, regardless of number of reads, were well characterized with saturating accumulation curves such that ASV diversity measured in the samples 
@@ -129,4 +130,5 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * City	         Plant richness of native species (number of species added)
 
 **Data-specific onformation for:** ***db-RDA_allorder_results.csv***
-    Results of sensitivity analyses by running db-RDA with all possible orders of the main effects, while keeping interaction terms entered last, because higher-order interactions are    conceptually dependent on the inclusion of main effects and lower-order terms, and are interpretable only after their constituent terms are accounted for.
+
+    Results of sensitivity analyses by running db-RDA with all possible orders of the main effects, while keeping interaction terms entered last, because higher-order interactions are conceptually dependent on the inclusion of main effects and lower-order terms, and are interpretable only after their constituent terms are accounted for.
