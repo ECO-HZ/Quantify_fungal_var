@@ -1,4 +1,4 @@
-<img width="852" height="43" alt="image" src="https://github.com/user-attachments/assets/b29bb078-21e0-4310-b4ad-c1c009db0c95" />The following files allow one to reproduce analyses in the manuscript entitled "Environmental context modulates rhizosphere fungal distinctiveness across plant phylogeny and functional traits".
+The following files allow one to reproduce analyses in the manuscript entitled "Environmental context modulates rhizosphere fungal distinctiveness across plant phylogeny and functional traits".
 
 DATA & FILE OVERVIEW
 
