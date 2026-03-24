@@ -23,6 +23,7 @@ options(amap_key = '989a66c96e4750756c11390fa782d8bc')
 seed_site_data <- seed_data %>% 
   geocode("Address", method = 'arcgis', lat = latitude, 
           long = longitude, full_results = TRUE) %>% as.data.frame()
+
 #head(seed_site_data)
 colnames(seed_site_data)[c(4,5)] <- c("Latitude", "Longitude")
 seed_site_data <- seed_site_data %>% left_join(seed_data) 
