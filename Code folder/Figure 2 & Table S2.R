@@ -9,9 +9,10 @@ library(ggplot2)
 library(dplyr)
 library(ggtext)
 library(patchwork)
+library(viridis)
 
 # Custom style
-mytheme <- theme_bw() + 
+mytheme <- theme_classic() + 
   theme(panel.background = element_rect(fill = "transparent", color = NA),
         plot.background = element_rect(fill = "transparent", color = NA),
         legend.background = element_rect(fill = "transparent", color = NA),
@@ -19,8 +20,8 @@ mytheme <- theme_bw() +
         legend.position = "none",
         legend.key = element_blank(),
         panel.grid=element_blank(), 
-        legend.title = element_text(size = 9),
-        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 10),
         axis.ticks = element_line(color='black'),
         axis.line = element_line(colour = "black"), 
         axis.title.x = element_text(colour='black', size=13),
@@ -63,7 +64,7 @@ Field_group_scale <- Field_group
 #colnames(Field_group_scale)
 var_select <- c("Site_pool","Funct_Di","Phylo_Di","Funct_Di_log","Phylo_Di_log",
                 "Soil_ph", "Wcont","Soil_N","Tave","Precipitation",
-                "Chol","SLA","LDMC","SRL","FRR","RS")
+                "Chol","SLA","LDMC","SRL","FRR","RS","Field_SR")
 
 Field_group_scale[var_select] = scale(Field_group_scale[c(var_select)])
 
@@ -72,177 +73,320 @@ fungi_relative <- decostand(Field_otu_raw, method = "total", MARGIN = 2)
 colSums(fungi_relative)
 BC_dist_RE_abun <- vegdist(t(fungi_relative), method = 'bray')
 
-######################### Table S2 (Field survey part) #########################
-set.seed(1234)
-Table_S2_PERMANOVA <- vegan::adonis2(t(fungi_relative) ~ Family/Species + Site + Years +
-                                       Family:Site + Family:Years + Family:Years:Site + 
-                                       Family/Species:Site + Family/Species:Years + Years:Site, by = "term", method = "bray",
-                                     data = Field_group_scale, permutations = 9999, parallel = 6)
+# performed distance-based redundancy analysis (db-RDA)
+Field_db_rda <- dbrda(BC_dist_RE_abun ~ Funct_Di_log + Phylo_Di_log + Tave + Precipitation + Soil_N + Soil_ph + Wcont +  
+                  Funct_Di_log:Tave + Funct_Di_log:Precipitation + Funct_Di_log:Soil_N + Funct_Di_log:Soil_ph + Funct_Di_log:Wcont + 
+                  Phylo_Di_log:Tave + Phylo_Di_log:Precipitation + Phylo_Di_log:Soil_N + Phylo_Di_log:Soil_ph + Phylo_Di_log:Wcont + 
+                  Condition(Field_SR), 
+                data = Field_group_scale, permutations = 999)
+set.seed(123456)
+db_rda_results <- anova(Field_db_rda, by = "term", permutations = 999)
+print(db_rda_results)
 
-Table_S2_PERMANOVA_field <- as.data.frame(Table_S2_PERMANOVA)[1:11,]
-rownames(Table_S2_PERMANOVA_field)[1:10] <- c("Family", "Site", "Year", "Species", "Family × Site", 
-                                              "Family × Year", "Site × Year", "Family × Site × Year", 
-                                              "Species × Site", "Species × Year")
-Table_S2_PERMANOVA_field$R2 <- round(Table_S2_PERMANOVA_field$R2,3)
-Table_S2_PERMANOVA_field$`F` <- round(Table_S2_PERMANOVA_field$`F`,2)
-print(Table_S2_PERMANOVA_field[c(1:7,9,10,8,11), ]) # reorder
+# check results
+db_rda_summary <- summary(Field_db_rda)
+
+# Importance of components (proportion of total variance explained)
+db_rda_summary$cont$importance 
+# Importance of constrained components / Constrained axes importance
+db_rda_summary$concont$importance 
+
+site_scores <- scores(Field_db_rda, display = "sites") 
+head(site_scores)
+soil_scores <- scores(Field_db_rda, display = "bp")
+head(soil_scores)
+
+df_sites <- as.data.frame(site_scores)
+df_soil <- as.data.frame(soil_scores)
+multiplier <- 2.5
+df_soil <- df_soil * multiplier
+
+df_sites$Sample_ID = rownames(df_sites)
+df_sites = df_sites %>% left_join(Field_group)
+colnames(df_sites)
+
+circled_numbers <- c("①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩",
+                     "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳")
+
+df_soil$Label <- circled_numbers[1:nrow(df_soil)]
+
+ggplot() +
+  geom_point(data = df_sites, aes(x = dbRDA1, y = dbRDA2, color = Funct_Di_log), 
+             alpha = 1, size = 3,  pch = 16) +                                
+  geom_segment(data = df_soil,aes(x = 0, y = 0, xend = dbRDA1, yend = dbRDA2),
+               arrow = arrow(length = unit(0.2, "cm")),
+               color = "black", alpha = 1, linewidth = 0.6) +
+  #geom_text(data = df_soil,aes(x = dbRDA1 * 1.1, y = dbRDA2 * 1.1, label = rownames(df_soil)),
+  #          color = "#B75E5F", size = 3, check_overlap = TRUE) +
+  geom_text(data = df_soil,aes(x = dbRDA1 * 1.1, y = dbRDA2 * 1.1, label = Label),
+            color = "black", size = 8, check_overlap = TRUE) +
+  labs(x=paste0("dbRDA1 (", round(Field_db_rda$CCA$eig[1]/sum(Field_db_rda$CCA$eig)*100,2), "%)"), 
+       y=paste0("dbRDA2 (", round(Field_db_rda$CCA$eig[2]/sum(Field_db_rda$CCA$eig)*100,2), "%)"),title = "") +
+  #scale_fill_gradient(low = "white", high = "#7F4C2E",  # 白色到 viridis 的深紫色
+  #                    na.value = "transparent") + 
+  scale_color_viridis(option = "D", direction = -1) + # 
+  mytheme + theme(legend.position = "right") + 
+  labs(title = NULL, fill = "Funct-Dist (log10)") + 
+  #scale_x_continuous(labels = scales::label_comma(accuracy =0.01)) +
+  #scale_y_continuous(labels = scales::label_comma(accuracy =0.01)) +
+  theme(plot.tag = element_text(size = 14, face = "bold")) +
+  guides(color = guide_colorbar(title.position = "top", 
+                               title.hjust = 0.5,barwidth = 10, barheight = 1)) +  
+  theme(legend.position = "top") -> Figure2_part1; Figure2_part1
 
 
-################################## Figure 2a ###################################
-# Principal Coordinates Analysis (PCoA)
-pcoa <- cmdscale(BC_dist_RE_abun , k = 2, eig = TRUE)
-plot_data <- data.frame({pcoa$points})[1:2]
-plot_data$Sample_ID <- rownames(plot_data)
-names(plot_data)[1:2] <- c('PCoA1', 'PCoA2')
-eig <- pcoa$eig
-plot_data_add <- plot_data %>% 
-  left_join(Field_group %>% select(-PCoA1, -PCoA2), by = "Sample_ID")
+ggplot() +
+  geom_point(data = df_sites, aes(x = dbRDA1, y = dbRDA2, color = Phylo_Di_log), 
+             alpha = 1, size = 3,  pch = 16) +                                
+  geom_segment(data = df_soil,aes(x = 0, y = 0, xend = dbRDA1, yend = dbRDA2),
+               arrow = arrow(length = unit(0.2, "cm")),
+               color = "black", alpha = 1, linewidth = 0.6) +
+  geom_text(data = df_soil,aes(x = dbRDA1 * 1.1, y = dbRDA2 * 1.1, label = Label),
+            color = "black", size = 8, check_overlap = TRUE) +
+  labs(x=paste0("dbRDA1(", round(Field_db_rda$CCA$eig[1]/sum(Field_db_rda$CCA$eig)*100,2), "%)"), 
+       y=paste0("dbRDA2(", round(Field_db_rda$CCA$eig[2]/sum(Field_db_rda$CCA$eig)*100,2), "%)"),title = "") +
+  #scale_fill_gradient(low = "white", high = "#7F4C2E",  # 白色到 viridis 的深紫色
+  #                    na.value = "transparent") + 
+  scale_color_viridis(option = "E", direction = -1) + # 
+  mytheme + theme(legend.position = "right") + 
+  labs(title = NULL, fill = "Phylo-Dist (log10)") + 
+  #scale_x_continuous(labels = scales::label_comma(accuracy =0.01)) +
+  #scale_y_continuous(labels = scales::label_comma(accuracy =0.01)) +
+  theme(plot.tag = element_text(size = 14, face = "bold")) +
+  guides(color = guide_colorbar(title.position = "top", 
+                               title.hjust = 0.5,barwidth = 10, barheight = 1)) +  
+  theme(legend.position = "top") -> Figure2_part2; Figure2_part2                   
 
-df = plot_data_add %>% dplyr::group_by(Site, Years) %>% 
-  dplyr::summarise(PCoA1_mean = mean(PCoA1), PCoA1_se = sd(PCoA1)/(sqrt(length(PCoA1))),
-                   PCoA2_mean = mean(PCoA2), PCoA2_se = sd(PCoA2)/(sqrt(length(PCoA2))))
-#Rmisc::summarySE(plot_data_add, measurevar = c("PCoA1"), groupvars = c("Years", "Latitude", "Origin"))
+Figure2_part1|Figure2_part2 -> Figure2_top
 
-# set colors of site
-site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
-                 "Wuhan" = "#32B7B2", "Zhengzhou" = "#75A750", "Tai'an" = "#E69F0D")
+#ggsave("Figure2_top.pdf", plot = Figure2_top, width = 16, height = 16, units = "in", dpi = 300)
 
-ggplot(df, aes(PCoA1_mean, PCoA2_mean))+
-  geom_point(plot_data_add, mapping = aes(PCoA1, PCoA2, color = Site, fill = Site, shape = Years), size = 2) + 
-  geom_point(df, mapping = aes(PCoA1_mean, PCoA2_mean, fill = Site, shape = Years), size = 4)+
-  geom_errorbar(data = df,mapping = aes(ymax = PCoA2_mean+PCoA2_se, ymin=PCoA2_mean-PCoA2_se),width=0,size=0.3,alpha = 1)+#
-  geom_errorbarh(data = df,mapping = aes(xmax=PCoA1_mean+PCoA1_se,xmin=PCoA1_mean-PCoA1_se),height=0,size=0.3,alpha = 1) +
-  scale_color_manual(values = site_colors) +
-  scale_fill_manual(values = site_colors) +
-  labs(x=paste("PCoA1 (", format(100 * eig[1] / sum(eig), digits=3), "%)", sep=""),
-       y=paste("PCoA2 (", format(100 * eig[2] / sum(eig), digits=3), "%)", sep=""),
-       tag = "(a)", title = "Field survey") +
-  scale_shape_manual(values = c(24,21,25)) + 
-  theme_bw() + mytheme + theme(legend.position = "right") + 
-  scale_x_continuous(labels = scales::label_comma(accuracy =0.01)) +
-  scale_y_continuous(labels = scales::label_comma(accuracy =0.01)) +
-  theme(plot.tag = element_text(size = 14, face = "bold")) + 
-  theme(legend.position = "right") -> Figure_2a; Figure_2a
+# Sensitivity analyses on distance-based redundancy analysis (db-RDA)
+vars <- c("Funct_Di_log", "Phylo_Di_log", "Tave", "Precipitation", "Soil_N", "Soil_ph", "Wcont")
+orders <- combinat::permn(vars) 
 
-################################## Figure 2b ###################################
-permanova_Table_S2_field <- as.data.frame(Table_S2_PERMANOVA_field[c(1:7,9,10,8), ])
-permanova_Table_S2_field$R2_per <- sprintf("%.1f", permanova_Table_S2_field$R2*100)
-permanova_Table_S2_field$p_label <- ifelse(
-  permanova_Table_S2_field$`Pr(>F)` < 0.001,
-  "italic(p) < 0.001",
-  paste0("italic(p) == ", formatC(permanova_Table_S2_field$`Pr(>F)`, format = "f", digits = 3, flag = "0")))
-permanova_Table_S2_field$p_shape <- as.factor(ifelse(permanova_Table_S2_field$`Pr(>F)` >= 0.05, "p ≥ 0.05", "p < 0.05"))
-permanova_Table_S2_field$Label <- rownames(permanova_Table_S2_field)
-permanova_Table_S2_field$Label <- factor(permanova_Table_S2_field$Label, levels = rownames(permanova_Table_S2_field)) 
-permanova_Table_S2_field <- as_tibble(permanova_Table_S2_field)
+#results_all <- NULL
+i = 1
 
-ggplot(permanova_Table_S2_field, aes(x = Label, y = as.numeric(R2_per))) + 
-  geom_bar(stat="identity", aes(fill = p_shape), color = "black") +
-  labs(x = NULL, y = "Explained variance (%)", tag = "(b)", fill = "Significance") + 
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0,42),
-                     labels = scales::label_number(accuracy = 0.1)) +
+for(i in 1:length(orders)) {
+  
+  main_effects <- paste(orders[[i]], collapse = " + ")
+  formula_str <- paste0("BC_dist_RE_abun ~", main_effects, 
+  "+ Funct_Di_log:Tave + Funct_Di_log:Precipitation + Funct_Di_log:Soil_N + Funct_Di_log:Soil_ph + Funct_Di_log:Wcont + Phylo_Di_log:Tave + Phylo_Di_log:Precipitation + Phylo_Di_log:Soil_N + Phylo_Di_log:Soil_ph + Phylo_Di_log:Wcont + Condition(Field_SR)")
+  
+  # performed db-RDA
+  set.seed(123456)
+  Sensitivity_db_rda <- dbrda(as.formula(formula_str), data = Field_group_scale)
+  Sensitivity_db_rda_results <- anova(Sensitivity_db_rda, by = "term", permutations = 999, parallel = 6)
+  #print(Sensitivity_db_rda_results)
+
+  # add sloop information
+  result_df <- as.data.frame(Sensitivity_db_rda_results)
+  result_df$Term <- rownames(Sensitivity_db_rda_results)
+  result_df$R2 <- result_df$SumOfSqs/sum(result_df$SumOfSqs)  
+  result_df$Order_ID <- i
+  
+  # 合并到总结果
+  results_all <- rbind(results_all, result_df)
+  print(paste("orders: ", i))
+}
+
+# loading data 
+results_all = data.table::fread("db-RDA_allorder_results.csv", header = T)
+head(results_all)
+results_all = results_all[results_all$Term != "Residual", ]
+
+name_mapping <- c(
+  "Funct_Di_log:Tave" = "Funct_Di_log:Tave",
+  "Tave:Funct_Di_log" = "Funct_Di_log:Tave",
+  
+  "Funct_Di_log:Precipitation" = "Funct_Di_log:Precipitation",
+  "Precipitation:Funct_Di_log" = "Funct_Di_log:Precipitation",
+  
+  "Funct_Di_log:Soil_N" = "Funct_Di_log:Soil_N",
+  "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
+  
+  "Funct_Di_log:Soil_ph" = "Funct_Di_log:Soil_ph",
+  "Soil_ph:Funct_Di_log" = "Funct_Di_log:Soil_ph",
+  
+  "Funct_Di_log:Wcont" = "Funct_Di_log:Wcont",
+  "Wcont:Funct_Di_log" = "Funct_Di_log:Wcont",
+  
+  "Phylo_Di_log:Tave" = "Phylo_Di_log:Tave",
+  "Tave:Phylo_Di_log" = "Phylo_Di_log:Tave",
+  
+  "Phylo_Di_log:Precipitation" = "Phylo_Di_log:Precipitation",
+  "Precipitation:Phylo_Di_log" = "Phylo_Di_log:Precipitation",
+  
+  "Phylo_Di_log:Soil_N" = "Phylo_Di_log:Soil_N",
+  "Soil_N:Phylo_Di_log" = "Phylo_Di_log:Soil_N",
+  
+  "Phylo_Di_log:Soil_ph" = "Phylo_Di_log:Soil_ph",
+  "Soil_ph:Phylo_Di_log" = "Phylo_Di_log:Soil_ph",
+  
+  "Phylo_Di_log:Wcont" = "Phylo_Di_log:Wcont",
+  "Wcont:Phylo_Di_log" = "Phylo_Di_log:Wcont"
+)
+
+results_all_deal <- results_all %>%
+  distinct(Order_ID, Term, .keep_all = TRUE) %>%
+  mutate(Term_unified = ifelse(Term %in% names(name_mapping), name_mapping[Term], Term))
+
+check_unification <- results_all_deal %>%
+  filter(grepl(":", Term)) %>%
+  group_by(Term_unified) %>%
+  summarise(original_names = paste(unique(Term), collapse = " | "),
+            n_orders = n_distinct(Order_ID),
+            .groups = "drop")
+
+print(check_unification)
+
+significance_results <- results_all_deal %>%
+  group_by(Term_unified) %>%
+  summarise(
+    total_orders = n_distinct(Order_ID),
+    sig_count = sum(`Pr(>F)` < 0.05, na.rm = TRUE),
+    nonsig_count = sum(`Pr(>F)` >= 0.05, na.rm = TRUE), 
+    sig_probability = sig_count / total_orders * 100,
+    nonsig_probability = nonsig_count / total_orders * 100, 
+    mean_p = mean(`Pr(>F)`, na.rm = TRUE),
+    sd_p = sd(`Pr(>F)`, na.rm = TRUE),
+    min_p = min(`Pr(>F)`, na.rm = TRUE),
+    max_p = max(`Pr(>F)`, na.rm = TRUE)
+  ) %>%
+  arrange(desc(sig_probability))
+
+significance_results_deal <- significance_results %>%
+  mutate(Term_display = case_when(
+    Term_unified == "Funct_Di_log" ~ "Funct-Dist",
+    Term_unified == "Funct_Di_log:Soil_ph" ~ "Funct-Dist × Soil pH",
+    Term_unified == "Funct_Di_log:Tave" ~ "Funct-Dist × Temperature",
+    Term_unified == "Funct_Di_log:Wcont" ~ "Funct-Dist × Wcont",
+    Term_unified == "Phylo_Di_log" ~ "Phylo-Dist",
+    Term_unified == "Phylo_Di_log:Precipitation" ~ "Phylo-Dist × Precipitation",
+    Term_unified == "Phylo_Di_log:Soil_N" ~ "Phylo-Dist × Soil N",
+    Term_unified == "Phylo_Di_log:Soil_ph" ~ "Phylo-Dist × Soil pH",
+    Term_unified == "Phylo_Di_log:Tave" ~ "Phylo-Dist × Temperature",
+    Term_unified == "Precipitation" ~ "Precipitation",
+    Term_unified == "Soil_N" ~ "Soil N",
+    Term_unified == "Soil_ph" ~ "Soil pH",
+    Term_unified == "Tave" ~ "Temperature",
+    Term_unified == "Wcont" ~ "Wcont",
+    Term_unified == "Funct_Di_log:Precipitation" ~ "Funct-Dist × Precipitation",
+    Term_unified == "Funct_Di_log:Soil_N" ~ "Funct-Dist × Soil N",
+    Term_unified == "Phylo_Di_log:Wcont" ~ "Phylo-Dist × Wcont",
+    Term_unified == "Residuals" ~ "Residuals",
+    Term_unified == "Total" ~ "Total",
+    TRUE ~ Term_unified 
+  ))
+
+#
+Term_order = c("Funct-Dist","Phylo-Dist","Temperature","Precipitation","Soil N","Soil pH","Wcont",
+               "Funct-Dist × Temperature", "Funct-Dist × Precipitation","Funct-Dist × Soil N","Funct-Dist × Soil pH","Funct-Dist × Wcont",
+               "Phylo-Dist × Temperature", "Phylo-Dist × Precipitation","Phylo-Dist × Soil N","Phylo-Dist × Soil pH","Phylo-Dist × Wcont")
+
+significance_results_deal <- significance_results_deal %>%
+  mutate(Term_display = factor(Term_display, levels = Term_order)) %>%
+  arrange(Term_display)
+
+plot_data_percent <- significance_results_deal %>%
+  filter(!Term_unified %in% c("Residuals", "Total")) %>%
+  select(Term_display, sig_probability, nonsig_probability) %>%
+  tidyr::pivot_longer(cols = c(sig_probability, nonsig_probability), 
+                      names_to = "Significance", 
+                      values_to = "Percentage") %>%
+  mutate(
+    Significance = case_when(
+      Significance == "sig_probability" ~ "p < 0.05)",
+      Significance == "nonsig_probability" ~ "p ≥ 0.05)"
+    ),
+    Significance = factor(Significance, levels = c("p < 0.05)", 
+                                                   "p ≥ 0.05)"))
+  )
+
+ggplot(plot_data_percent, aes(x = Term_display, y = Percentage, fill = Significance)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.8) +
+  scale_fill_manual(values = c("p < 0.05)" = "#214A7B", 
+                               "p ≥ 0.05)" = "#949FBB")) +
+  #geom_hline(yintercept = 50, linetype = "dashed", color = "grey50", alpha = 0.5) + 
+  labs(x = NULL, y = "Proportion of\ntotal models (%)", fill = "Significance") +
   theme(panel.background = element_blank(),  
         plot.background = element_blank(),
-        legend.position = c(0.8,0.8),
+        legend.position = "right",
         plot.tag = element_text(size = 14, face = "bold"),
         axis.title.y = element_text(colour='black',size=13),
         axis.text.y = element_text(colour='black',size=11),
         axis.text.x = element_text(colour='black',size=11, angle = 30, vjust = 1, hjust = 1),
         plot.margin = margin(l = 60, r = 20, t = 10, b = 40),
         axis.line.y = element_line(color = "black")) +
-  scale_fill_manual(values = c("p ≥ 0.05" = "white", "p < 0.05" = "#3C4D6B")) -> Figure_2b; Figure_2b
+  scale_y_continuous(labels = scales::percent_format(scale = 1),
+                     expand = expansion(mult = c(0, 0))) -> Figure2_part3; Figure2_part3
 
 
-###################### Table S2 (Greenhouse exp. part) #########################
-# loading sample grouping information in greenhouse exp.
-Green_group <- read.xlsx("Greenhouse_data_group.xlsx", sheet = "green_group", colNames = T, rowNames = T)
-Green_group$Sample_ID <- rownames(Green_group)
-colnames(Green_group)
+r2_statistics <- results_all_deal %>%
+  group_by(Term_unified) %>%
+  summarise(
+    n_orders = n_distinct(Order_ID),
+    n_total = n(),
+    mean_R2 = mean(R2, na.rm = TRUE),
+    median_R2 = median(R2, na.rm = TRUE),
+    sd_R2 = sd(R2, na.rm = TRUE),
+    se_R2 = sd_R2 / sqrt(n()), 
+    ci_lower = mean_R2 - 1.96 * se_R2,
+    ci_upper = mean_R2 + 1.96 * se_R2,
+    n_unique_R2 = n_distinct(R2),
+    .groups = "drop")
 
-# loading sample grouping information in greenhouse exp.
-Green_otu_raw <- read.xlsx("Greenhouse_data_raw_ASVs.xlsx", sheet = "raw_ASVs", colNames = T, rowNames = T)
-Green_otu_raw <- Green_otu_raw[ ,Green_group$Sample_ID]
+print(r2_statistics)
 
-Green_fungi_relative <- decostand(Green_otu_raw, method = "total", MARGIN = 2)
-colSums(Green_fungi_relative)
-Green_fungi_dist <- vegdist(t(Green_fungi_relative), method = 'bray')
+r2_statistics$R2_per <- sprintf("%.1f", r2_statistics$mean_R2*100)
 
-set.seed(1234)
-Table_S2_PER_green <- vegan::adonis2(t(Green_fungi_relative) ~ Family/Species, Green_group, method = "bray",permutations = 9999)
-print(Table_S2_PER_green)
+r2_statistics_deal <- r2_statistics %>%
+  mutate(Term_display = case_when(
+    Term_unified == "Funct_Di_log" ~ "Funct-Dist",
+    Term_unified == "Funct_Di_log:Soil_ph" ~ "Funct-Dist × Soil pH",
+    Term_unified == "Funct_Di_log:Tave" ~ "Funct-Dist × Temperature",
+    Term_unified == "Funct_Di_log:Wcont" ~ "Funct-Dist × Wcont",
+    Term_unified == "Phylo_Di_log" ~ "Phylo-Dist",
+    Term_unified == "Phylo_Di_log:Precipitation" ~ "Phylo-Dist × Precipitation",
+    Term_unified == "Phylo_Di_log:Soil_N" ~ "Phylo-Dist × Soil N",
+    Term_unified == "Phylo_Di_log:Soil_ph" ~ "Phylo-Dist × Soil pH",
+    Term_unified == "Phylo_Di_log:Tave" ~ "Phylo-Dist × Temperature",
+    Term_unified == "Precipitation" ~ "Precipitation",
+    Term_unified == "Soil_N" ~ "Soil N",
+    Term_unified == "Soil_ph" ~ "Soil pH",
+    Term_unified == "Tave" ~ "Temperature",
+    Term_unified == "Wcont" ~ "Wcont",
+    Term_unified == "Funct_Di_log:Precipitation" ~ "Funct-Dist × Precipitation",
+    Term_unified == "Funct_Di_log:Soil_N" ~ "Funct-Dist × Soil N",
+    Term_unified == "Phylo_Di_log:Wcont" ~ "Phylo-Dist × Wcont",
+    Term_unified == "Residuals" ~ "Residuals",
+    Term_unified == "Total" ~ "Total",
+    TRUE ~ Term_unified  
+  ))
 
-Table_S2_PERMANOVA_Green <- as.data.frame(Table_S2_PER_green[1:3, ])
-rownames(Table_S2_PERMANOVA_Green)[1:2] <- c("Family", "Species")
-Table_S2_PERMANOVA_Green$R2 <- round(Table_S2_PERMANOVA_Green$R2,3)
-Table_S2_PERMANOVA_Green$`F` <- round(Table_S2_PERMANOVA_Green$`F`,2)
-print(Table_S2_PERMANOVA_Green[, c(1,3,4,5)]) # reorder
 
-################################### Figure 2c ##################################
-# Principal Coordinates Analysis (PCoA)
-pcoa <- cmdscale(Green_fungi_dist , k = 2, eig = TRUE)
-plot_data <- data.frame({pcoa$points})[1:2]
-plot_data$Sample_ID <- rownames(plot_data)
-names(plot_data)[1:2] <- c('PCoA1', 'PCoA2')
-eig = pcoa$eig
-plot_data <- merge(plot_data, Green_group, by = 'Sample_ID', all.x = TRUE)
+r2_statistics_deal <- r2_statistics_deal %>%
+  filter(!Term_unified %in% c("Residuals", "Total")) %>%
+  mutate(Term_display = factor(Term_display, levels = Term_order)) %>%
+  arrange(Term_display) %>% as.data.frame()
 
-plot_data$Origin = factor(plot_data$Origin, levels = c("Native","Exotic"))
-plot_data$Family = as.factor(plot_data$Family)
+colnames(r2_statistics_deal)
 
-###
-df = plot_data %>% group_by(Family) %>% 
-  summarise(PCoA1_mean = mean(PCoA1), PCoA1_se = sd(PCoA1)/(sqrt(length(PCoA1))),
-            PCoA2_mean = mean(PCoA2), PCoA2_se = sd(PCoA2)/(sqrt(length(PCoA2))))
-
-plot_data2 = merge(plot_data, df, by = c("Family"))
-unique(df$Family)
-
-family_color = c("Acanthaceae"="#003727","Amaranthaceae"="#005C4F","Asteraceae" ="#047266","Caryophyllaceae" = "#218B82", "Cyperaceae" = "#40A699",
-                 "Euphorbiaceae" ="#6FBFB2", "Fabaceae" = "#97CFC9","Lamiaceae" ="#B4E2D8","Malvaceae"="#D2ECE8", "Onagraceae" = "#E3CD89",
-                 "Phytolaccaceae" = "#D7B36A","Poaceae" ="#C79046","Polygonaceae"="#AF7423", "Solanaceae" = "#995C12", "Urticaceae" = "#7C4607", "Verbenaceae" = "#5F3401")
-
-ggplot(df, aes(PCoA1_mean, PCoA2_mean))+
-  geom_point(plot_data,mapping = aes(PCoA1, PCoA2, fill = Family, color = Family), size = 2, pch= 21) +
-  geom_point(df,mapping = aes(PCoA1_mean, PCoA2_mean, color = Family, fill = Family), size = 4, pch = 21, color = "black")+
-  geom_errorbar(data = df,mapping = aes(ymax = PCoA2_mean+PCoA2_se, ymin=PCoA2_mean-PCoA2_se),width=0,size=0.3,alpha = 1)+#
-  geom_errorbarh(data = df,mapping = aes(xmax=PCoA1_mean+PCoA1_se,xmin=PCoA1_mean-PCoA1_se),height=0,size=0.3,alpha = 1) +
-  scale_color_manual(values = family_color) +
-  scale_fill_manual(values = family_color) +
-  scale_shape_manual(values = c(21,16)) +
-  labs(x=paste("PCoA1 (", format(100 * eig[1] / sum(eig), digits=3), "%)", sep=""),
-       y=paste("PCoA2 (", format(100 * eig[2] / sum(eig), digits=3), "%)", sep=""),
-       tag = "(c)", title = "Greenhouse experiment")+
-  theme_bw() + mytheme + theme(legend.position = "right") + 
-  theme(plot.tag = element_text(size = 14, face = "bold")) + 
-  scale_x_continuous(labels = scales::label_comma(accuracy =0.01))+
-  scale_y_continuous(labels = scales::label_comma(accuracy =0.01)) -> Figure_2c; Figure_2c
-
-################################### Figure 2d ##################################
-permanova_Table_S2_green <- as.data.frame(Table_S2_PER_green[c(1:2), ])
-rownames(permanova_Table_S2_green)[1:2] <- c("Family", "Species")
-permanova_Table_S2_green$R2_per <- sprintf("%.1f", permanova_Table_S2_green$R2*100)
-permanova_Table_S2_green$R2 <- round(permanova_Table_S2_green$R2,2)
-permanova_Table_S2_green$p_label <- ifelse(
-  permanova_Table_S2_green$`Pr(>F)` < 0.001,
-  "italic(p) < 0.001",
-  paste0("italic(p) == ", formatC(permanova_Table_S2_green$`Pr(>F)`, format = "f", digits = 3, flag = "0")))
-permanova_Table_S2_green$p_shape <- as.factor(ifelse(permanova_Table_S2_green$`Pr(>F)` >= 0.05, 1, 0))
-permanova_Table_S2_green$Label = rownames(permanova_Table_S2_green)
-permanova_Table_S2_green$Label = factor(permanova_Table_S2_green$Label, levels = (rownames(permanova_Table_S2_green))) # rev.default
-permanova_Table_S2_green <- as_tibble(permanova_Table_S2_green)
-
-ggplot(permanova_Table_S2_green, aes(x = rev(Label), y = as.numeric(R2_per))) + 
-  geom_bar(stat="identity", aes(fill = p_shape), color = "black") +
-  labs(x = NULL, y = "Explained variance (%)", tag = "b") + 
-  scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0,42)) +
+r2_statistics_deal$y_name = "Explained\nvariance (%)"
+str(r2_statistics_deal)
+ggplot(r2_statistics_deal, aes(x = Term_display, y = y_name)) +
+  geom_point(shape = 21, fill = "#3C4D6B", color = "#3C4D6B",alpha = 1, size = 9) +
+  geom_text(aes(label = R2_per), 
+            color = "white", fontface = "bold", size = 3) +
+  labs(x = NULL, y = NULL) +
   theme(panel.background = element_blank(),  
         plot.background = element_blank(),
         legend.position = "none",
-        plot.tag = element_text(size = 14, face = "bold"),
-        axis.title.y = element_text(colour='black',size=13),
-        axis.text.y = element_text(colour='black',size=11),
-        axis.text.x = element_text(colour='black',size=11, angle = 30, vjust = 1, hjust = 1),
-        plot.margin = margin(l = 60, r = 20, t = 10, b = 40),
-        axis.line.y = element_line(color = "black")) +
-  scale_fill_manual(values = c("1" = "white", "0" = "#3C4D6B")) -> Figure_2d; Figure_2d
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.x = element_blank()) -> Figure2_part4; Figure2_part4
+
+(Figure2_part4/Figure2_part3) + plot_layout(heights = c(0.1,0.9))
+
 
