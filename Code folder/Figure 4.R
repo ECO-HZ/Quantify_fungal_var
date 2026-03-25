@@ -74,13 +74,24 @@ dd12 <- dredge(fm1, subset = ~ PCoA1 &
                  dc(Phylo_Di_log, Wcont, Phylo_Di_log:Wcont) & 
                  dc(Phylo_Di_log, Soil_N, Phylo_Di_log:Soil_N), trace = 2, rank = "AICc")
 
-#  the proportion of the best-fitting models a factor was selected)
+# the proportion of the best-fitting models a factor was selected)
 de6 <- model.avg(dd12, subset = delta < 2, fit = TRUE)
 de6$msTable
 print(de6$msTable[1,])
-impor_predictors = as.data.frame(sw(de6))
-impor_predictors$Parameter = rownames(impor_predictors)
-colnames(impor_predictors)[1] = "importance"
+
+# calculated the possibility (i.e., the proportion of the best-fitting models a factor was selected) 
+# of having an effect for each predictor over the multimodel space composed of all fitting models (ΔAICc < 2)
+sw_unclass <- unclass(sw(de6))
+weights <- sw_unclass
+n_models <- attr(sw_unclass, "n.models")
+variables <- names(sw_unclass)
+importance_df <- data.frame(
+  Parameter = variables,
+  Sum_of_weights = as.numeric(weights),
+  N_containing_models = as.numeric(n_models))
+importance_df <- importance_df[order(-importance_df$Sum_of_weights), ]
+importance_df$sel_prop <- importance_df$N_containing_models/40
+print(importance_df)
 
 # Identified the best-fitting models for each response variable based on 
 # Corrected Akaike Information Criterion (AICc) and weight
@@ -114,7 +125,7 @@ hierarchical_data <- as.data.frame(glmm.hp::glmm.hp(Final_model, type = "R2")$hi
 # add other information (e.g., importance of predictors)
 MegaModelSummary <- MegaModelSummary %>% 
   left_join(Table_S4[,c("Parameter","p.adj")], by = "Parameter") %>%
-  left_join(impor_predictors)
+  left_join(importance_df)
 head(MegaModelSummary)
 # rename predictors
 MegaModelSummary_deal <- MegaModelSummary %>%
@@ -182,9 +193,10 @@ ggplot(MegaModelSummary_deal, aes(x = Term_display, y = Std_Coefficient, fill = 
 
 library(viridis)
 MegaModelSummary_deal$x_pos <- "Importance"
-MegaModelSummary_deal$importance_lab <- sprintf("%.2f", MegaModelSummary_deal$importance)
+MegaModelSummary_deal$importance_lab <- sprintf("%.2f", MegaModelSummary_deal$sel_prop)
+MegaModelSummary_deal$importance_lab <- round(MegaModelSummary_deal$sel_prop, 2)
 
-ggplot(MegaModelSummary_deal, aes(x = x_pos, y = Term_display, fill = importance)) +
+ggplot(MegaModelSummary_deal, aes(x = x_pos, y = Term_display, fill = sel_prop)) +
   geom_tile(width = 1, height = 1, color = "white") +
   #scale_fill_viridis(option = "D", direction = -1) + # + 
   scale_fill_gradient2(low = "#0C1E60", mid = "white", high = "#A59590",
@@ -281,4 +293,3 @@ Figure_4a
 Figure_4b/Figure_4c -> Figure_4_right
 ggsave("Figure_4a.pdf", plot = Figure_4a, width = 9, height = 8.5, units = "in", dpi = 300)
 ggsave("Figure_4b.pdf", plot = Figure_4_right, width = 4.5, height = 7.8, units = "in", dpi = 300)
-
