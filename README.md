@@ -39,6 +39,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * 9. Figure S5.R  
     * 10. Figure S6.R  
     * 11. Figure S7.R  
+    * 12. Figure S8.R  
     
     Ohter codes
     * 01_Calculation of asymptotic exponential Shannon diversity.R  
