@@ -81,27 +81,22 @@ mod_list$model_code <- 1:nrow(mod_list)
 head(mod_list)
 df_data = mod_list 
 
-# 找到所有可能的变量编号
 all_vars <- unique(unlist(strsplit(df_data$var_list, "\\+")))
 all_vars <- sort(as.numeric(all_vars))
 
-# 创建选择矩阵
 selection_matrix <- matrix(0, nrow = nrow(df_data), ncol = length(all_vars))
 rownames(selection_matrix) <- paste0("Model_", df_data$model_code)
 colnames(selection_matrix) <- all_vars
 
-# 填充矩阵
 for(i in 1:nrow(df_data)) {
   selected_vars <- as.numeric(unlist(strsplit(df_data$var_list[i], "\\+")))
   selection_matrix[i, which(all_vars %in% selected_vars)] <- 1
 }
 
-# 转换为长格式用于绘图
 plot_data <- melt(selection_matrix)
 colnames(plot_data) <- c("Model", "Variable", "Selected")
 head(plot_data)
 
-# 添加模型信息（可选：按AICc或delta排序）
 plot_data <- plot_data %>%
   dplyr::left_join(df_data %>% 
                      dplyr::select(model_code, df, AICc, delta, weight) %>%
@@ -158,7 +153,6 @@ var_number_mapping <- var_number_mapping %>%
     Term == "Phylo_Di_log:Wcont" ~ "Phylo-Dist × Wcont",
     TRUE ~ Term))
 
-
 plot_data <- plot_data %>% left_join(var_number_mapping)
 
 # reorder
@@ -169,7 +163,6 @@ order = c("PCoA1","Funct_Di_log","Phylo_Di_log","Tave","Precipitation","Soil_N",
 plot_data <- plot_data %>% arrange(match(Term, order))
 plot_data$Term_display <- factor(plot_data$Term_display, levels = unique(plot_data$Term_display))
 head(plot_data)
-
 
 ggplot(plot_data, aes(x = Term_display, y = reorder(Model, -AICc), fill = factor(Selected))) +
   geom_tile(color = "white", size = 0.5) +
@@ -208,6 +201,5 @@ ggplot(mod_list_long, aes(x = factor(Parameter), y = factor(reorder(model_code, 
         plot.margin = margin(t = 30, r = 40, b = 30, l = 80, unit = "pt"),
         legend.position = "none") -> Figure_S8b; Figure_S8b
 
-
+#
 Figure_S8a|Figure_S8b + plot_layout(widths = c(0.9,0.1))
-
