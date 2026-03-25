@@ -128,7 +128,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     Variable list	 Description
     * Pinyin	 City name
     * Address	 City name
-    * City	         Plant richness of native species (number of species added)
+    * City	    City name
 
 **Data-specific onformation for:** ***db-RDA_allorder_results.csv***
 
