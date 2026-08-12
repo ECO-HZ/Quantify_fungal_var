@@ -161,7 +161,7 @@ ggplot() +
         #strip.background = element_rect(colour = "black"),
         axis.text = element_text(colour = 'black', size = 8)) ->  Figure_S5
 
-# one-way Anova
+# kruskal.test
 taxon <- unique(total_di$taxon)
 final_data <- NULL
 
@@ -173,7 +173,7 @@ for (i in taxon) {
   #summary_data <- data.frame(Species = i, F_value = results[[1]][1,4], p_value = results[[1]][1,5])
   #final_data <- rbind(final_data, summary_data)
   
-  # 非参数检验
+  # kruskal.test
   kt <- kruskal.test(Fungal_Di ~ factor(num), data = select_data)
   
   summary_data <- data.frame(
@@ -191,7 +191,7 @@ print(subset(final_data, p_value <= 0.05))
 sp_select <- subset(final_data, p_value <= 0.05)$Species
 length(sp_select)
 
-# 保存所有多重比较结果和字母结果
+# save results
 dunn_all <- NULL
 letter_all <- NULL
 
