@@ -16,7 +16,6 @@ All data will be made available upon acceptance of the manuscript.
     * 3. Greenhouse_data_raw_ASVs.xlsx  
     * 4. Greenhouse_data_group.xlsx  
     * 5. Site_information_seed.xlsx  
-    * 6. db-RDA_allorder_results.csv
     
 *List of phylogenetic tree data files (.newick)*  
 
@@ -29,9 +28,8 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 *List of R-scripts*
 
     * 1. Figure 1.pdf
-    * 2. Figure 2 & Table S2.R  
-    * 3. Figure 3.R  
-    * 4. Figure 4.R  
+    * 2. Figure 2.R  
+    * 3. Figure 3 & Table S2.R  
     * 5. Figure S1.R  
     * 6. Figure S2.R 
     * 7. Figure S3.R  
@@ -129,7 +127,3 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Pinyin	 City name
     * Address	 City name
     * City	    City name
-
-**Data-specific onformation for:** ***db-RDA_allorder_results.csv***
-
-    Results of sensitivity analyses by running db-RDA with all possible orders of the main effects, while keeping interaction terms entered last, because higher-order interactions are conceptually dependent on the inclusion of main effects and lower-order terms, and are interpretable only after their constituent terms are accounted for.
