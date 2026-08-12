@@ -209,54 +209,37 @@ for (sp_sel in sp_select) {
   print(kt)
 
   # Dunn's test for multiple comparisons
-  dunn_res <- FSA::dunnTest(Fungal_Di ~ num,data = select_data, method = "holm")
+  dunn_res <- FSA::dunnTest(Fungal_Di ~ num,data = select_data, method = "bh")
   dunn_df <- dunn_res$res
   dunn_df$Species <- sp_sel
   print(dunn_df)
   
-  # 保存 Dunn test 结果
   dunn_all <- rbind(dunn_all, dunn_df)
-  
-  # 提取调整后的 p 值
   p_vec <- dunn_df$P.adj
-  
-  # 处理比较名称，multcompLetters 需要类似 "1-2" 这种名字
   names(p_vec) <- gsub(" - ", "-", dunn_df$Comparison)
-  
-  # 生成字母标记
   letter_vec <- multcompView::multcompLetters(p_vec,threshold = 0.05)$Letters
   
   letter_df <- data.frame(Species = sp_sel,num = names(letter_vec),Letters = letter_vec,row.names = NULL)
   print(letter_df)
   
-  # 保存字母结果
   letter_all <- rbind(letter_all, letter_df)
 }
 
 library(tidyr)
 
 letter_wide <- letter_all %>%
-  tidyr::pivot_wider(
-    names_from = num,
-    values_from = Letters,
-    names_prefix = "num_"
-  )
+  tidyr::pivot_wider(names_from = num,values_from = Letters,names_prefix = "num_")
 
 letter_wide
-
 
 library(dplyr)
 
 total_di$num <- as.factor(total_di$num)
 letter_all$num <- as.factor(letter_all$num)
 
-# 每个 taxon 对应一个 Latin_name
-taxon_name <- total_di %>%
-  distinct(taxon, Latin_name)
+taxon_name <- total_di %>% distinct(taxon, Latin_name)
 
-# 把 Latin_name 加到字母结果中
-letter_plot <- letter_all %>%
-  left_join(taxon_name, by = c("Species" = "taxon"))
+letter_plot <- letter_all %>% left_join(taxon_name, by = c("Species" = "taxon"))
 
 label_pos <- total_di %>%
   mutate(num = as.factor(num)) %>%
@@ -264,40 +247,19 @@ label_pos <- total_di %>%
   dplyr::summarise(
     y_pos = max(Fungal_Di, na.rm = TRUE) + 
       0.12 * diff(range(Fungal_Di, na.rm = TRUE)),
-    .groups = "drop"
-  )
+    .groups = "drop")
 
 label_data <- letter_plot %>%
-  left_join(
-    label_pos,
-    by = c("Species" = "taxon", "Latin_name" = "Latin_name", "num" = "num")
-  ) %>%
+  left_join(label_pos,by = c("Species" = "taxon", "Latin_name" = "Latin_name", "num" = "num")) %>%
   filter(!is.na(Letters))
 
-Figure_S5 <- ggplot() +
-  geom_boxplot(
-    data = total_di,
-    mapping = aes(x = as.factor(num), y = Fungal_Di),
-    outlier.size = 0.8,
-    outlier.shape = 21,
-    size = 0.5
-  ) +
-  geom_text(
-    data = label_data,
-    mapping = aes(x = num, y = y_pos, label = Letters),
-    size = 3,
-    vjust = 0
-  ) +
+ggplot() +
+  geom_boxplot(data = total_di,mapping = aes(x = as.factor(num), y = Fungal_Di),
+               outlier.size = 0.8,outlier.shape = 21,size = 0.5) +
+  geom_text(data = label_data,mapping = aes(x = num, y = y_pos, label = Letters),
+            size = 3,vjust = 0) +
   facet_wrap(~ Latin_name, ncol = 9, nrow = 6) +
-  labs(
-    x = "Add number of species",
-    y = "Fungal compositional distinctiveness"
-  ) +
+  labs(x = "Add number of species", y = "Fungal compositional distinctiveness") +
   mytheme +
-  theme(
-    strip.text = element_text(size = 9, face = "italic"),
-    axis.text = element_text(colour = "black", size = 8)
-  )
-
-Figure_S5
-
+  theme(strip.text = element_text(size = 9, face = "italic"),
+        axis.text = element_text(colour = "black", size = 8)) -> Figure_S5; Figure_S5
