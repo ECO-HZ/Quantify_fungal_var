@@ -1,5 +1,5 @@
 ################################################################################
-################################## Figure S2 ###################################
+################################## Figure S1 ###################################
 ################################################################################
 
 # Loading the R packages
@@ -31,7 +31,7 @@ seed_site_data <- seed_site_data %>% left_join(seed_data)
 # Loading China map
 china_map <- sf::st_read("https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json") 
 
-################################# Figure S2a ###################################
+################################# Figure S1a ###################################
 ggplot(china_map)+
   geom_sf(data = china_map, fill = "grey95",size = 1) + 
   xlim(105, 122)+ ylim(18, 42)+ 
@@ -61,7 +61,7 @@ ggplot(china_map)+
                            max.overlaps = getOption("ggrepel.max.overlaps", default = 25))
 
 
-################################# Figure S2b ###################################
+################################# Figure S1b ###################################
 tree <- read.newick("IQ_tree_plant_2025.NEWICK")
 to_drop <- c("Amborella_trichopoda","")
 tree <- drop.tip(as.phylo(tree), to_drop) 
