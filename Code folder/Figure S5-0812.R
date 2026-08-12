@@ -167,9 +167,21 @@ final_data <- NULL
 
 for (i in taxon) {
   select_data <- subset(total_di, taxon == i)
-  mod <- aov(Fungal_Di ~ factor(num), data = select_data)
-  results <- summary(mod)
-  summary_data <- data.frame(Species = i, F_value = results[[1]][1,4], p_value = results[[1]][1,5])
+  #mod <- aov(Fungal_Di ~ factor(num), data = select_data)
+  #print(shapiro.test(residuals(mod)))
+  #results <- summary(mod)
+  #summary_data <- data.frame(Species = i, F_value = results[[1]][1,4], p_value = results[[1]][1,5])
+  #final_data <- rbind(final_data, summary_data)
+  
+  # 非参数检验
+  kt <- kruskal.test(Fungal_Di ~ factor(num), data = select_data)
+  
+  summary_data <- data.frame(
+    Species = i,
+    Chi_square = unname(kt$statistic),
+    df = unname(kt$parameter),
+    p_value = kt$p.value)
+  
   final_data <- rbind(final_data, summary_data)
 }
 
@@ -177,14 +189,115 @@ print(subset(final_data, p_value <= 0.05))
 
 # 
 sp_select <- subset(final_data, p_value <= 0.05)$Species
+length(sp_select)
+
+# 保存所有多重比较结果和字母结果
+dunn_all <- NULL
+letter_all <- NULL
 
 for (sp_sel in sp_select) {
   total_di$num <- as.factor(total_di$num)
   select_data <- subset(total_di, taxon == sp_sel)
-  mod <- aov(Fungal_Di ~ (num), data = select_data)
-  print(sp_sel);print(summary(mod))
-  LSSeasonNrate <- emmeans(mod, ~ num, adjust = "Tukey")
-  Multiple_comp <- cld(LSSeasonNrate, alpha = 0.05, Letters = letters, adjust = "none", sort = F, rev = TRUE) 
-  print(Multiple_comp)
+  #mod <- aov(Fungal_Di ~ factor(num), data = select_data)
+  #shapiro.test(residuals(mod))
+  #print(sp_sel);print(summary(mod))
+  #LSSeasonNrate <- emmeans(mod, ~ num, adjust = "Tukey")
+  #Multiple_comp <- cld(LSSeasonNrate, alpha = 0.05, Letters = letters, adjust = "none", sort = F, rev = TRUE) 
+  #print(Multiple_comp)
+  # Kruskal-Wallis test
+  kt <- kruskal.test(Fungal_Di ~ num, data = select_data)
+  print(kt)
+
+  # Dunn's test for multiple comparisons
+  dunn_res <- FSA::dunnTest(Fungal_Di ~ num,data = select_data, method = "holm")
+  dunn_df <- dunn_res$res
+  dunn_df$Species <- sp_sel
+  print(dunn_df)
+  
+  # 保存 Dunn test 结果
+  dunn_all <- rbind(dunn_all, dunn_df)
+  
+  # 提取调整后的 p 值
+  p_vec <- dunn_df$P.adj
+  
+  # 处理比较名称，multcompLetters 需要类似 "1-2" 这种名字
+  names(p_vec) <- gsub(" - ", "-", dunn_df$Comparison)
+  
+  # 生成字母标记
+  letter_vec <- multcompView::multcompLetters(p_vec,threshold = 0.05)$Letters
+  
+  letter_df <- data.frame(Species = sp_sel,num = names(letter_vec),Letters = letter_vec,row.names = NULL)
+  print(letter_df)
+  
+  # 保存字母结果
+  letter_all <- rbind(letter_all, letter_df)
 }
+
+library(tidyr)
+
+letter_wide <- letter_all %>%
+  tidyr::pivot_wider(
+    names_from = num,
+    values_from = Letters,
+    names_prefix = "num_"
+  )
+
+letter_wide
+
+
+library(dplyr)
+
+total_di$num <- as.factor(total_di$num)
+letter_all$num <- as.factor(letter_all$num)
+
+# 每个 taxon 对应一个 Latin_name
+taxon_name <- total_di %>%
+  distinct(taxon, Latin_name)
+
+# 把 Latin_name 加到字母结果中
+letter_plot <- letter_all %>%
+  left_join(taxon_name, by = c("Species" = "taxon"))
+
+label_pos <- total_di %>%
+  mutate(num = as.factor(num)) %>%
+  dplyr::group_by(taxon, Latin_name, num) %>%
+  dplyr::summarise(
+    y_pos = max(Fungal_Di, na.rm = TRUE) + 
+      0.12 * diff(range(Fungal_Di, na.rm = TRUE)),
+    .groups = "drop"
+  )
+
+label_data <- letter_plot %>%
+  left_join(
+    label_pos,
+    by = c("Species" = "taxon", "Latin_name" = "Latin_name", "num" = "num")
+  ) %>%
+  filter(!is.na(Letters))
+
+Figure_S5 <- ggplot() +
+  geom_boxplot(
+    data = total_di,
+    mapping = aes(x = as.factor(num), y = Fungal_Di),
+    outlier.size = 0.8,
+    outlier.shape = 21,
+    size = 0.5
+  ) +
+  geom_text(
+    data = label_data,
+    mapping = aes(x = num, y = y_pos, label = Letters),
+    size = 3,
+    vjust = 0
+  ) +
+  facet_wrap(~ Latin_name, ncol = 9, nrow = 6) +
+  labs(
+    x = "Add number of species",
+    y = "Fungal compositional distinctiveness"
+  ) +
+  mytheme +
+  theme(
+    strip.text = element_text(size = 9, face = "italic"),
+    axis.text = element_text(colour = "black", size = 8)
+  )
+
+Figure_S5
 
