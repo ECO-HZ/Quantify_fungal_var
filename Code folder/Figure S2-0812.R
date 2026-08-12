@@ -1,5 +1,5 @@
 ################################################################################
-################################# Figure S3 ####################################
+################################# Figure S2 ####################################
 ################################################################################
 # Loading the R packages
 library(openxlsx)
@@ -37,15 +37,15 @@ sum(Green_otu_raw)
 field_ASV <- data.frame(ASV = rownames(Field_otu_raw), type = "Field")
 green_ASV <- data.frame(ASV = rownames(Green_otu_raw), type = "Green")
 
-################################# Figure S3a ###################################
+################################# Figure S2a ###################################
 list(`Field survey`=field_ASV$ASV, `Greenhouse experiment` = green_ASV$ASV) %>% 
   ggvenn(show_percentage = F,show_elements = F,label_sep = ",",
          digits = 1, stroke_color = "white",
          fill_color = c("#183C63", "#93C8C0"),
-         set_name_color = c("#183C63", "#93C8C0")) -> Figure_S3a; Figure_S3a
+         set_name_color = c("#183C63", "#93C8C0")) -> Figure_S2a; Figure_S2a
 
 
-################################# Figure S3b ###################################
+################################# Figure S2b ###################################
 # Filter common ASV IDs
 common_ASVs <- intersect(rownames(Field_otu_raw), rownames(Green_otu_raw))
 length(common_ASVs)
@@ -209,7 +209,129 @@ ggplot(diff_BC_merge_all, aes(y = Years, x = diff_BC*100, fill = Type, color = T
         panel.spacing = unit(0, "lines")) +
   labs(x = 'Common taxa contributions\nto fungal community dissimilarity', y = NULL) +
   geom_segment(aes(x = 0, xend = 0, y = 1, yend = 3), color = "black") +
-  coord_flip() -> Figure_S3b; Figure_S3b
+  coord_flip() -> Figure_S2b; Figure_S2b
 
 ### Notice that,
 ### For more picture details, we have further adjusted it in Adobe illustrator.
+
+# To address the comparison between field and greenhouse fungal communities while respecting the hierarchical design structure, 
+# we performed a stratified Mantel test where permutations were strictly constrained within each Site × Year block (strata = Site:Years). 
+                                      
+# Soil sample grouping information
+Field_group <- read.xlsx("Field_data_group.xlsx", sheet = "Field_group", rowNames = T, colNames = T)
+Field_group$Sample_ID <- rownames(Field_group)
+
+# Soil samples-abundance table
+Field_otu_raw <- read.xlsx("Field_data_raw_ASVs.xlsx", sheet = "raw_otu", colNames = T, rowNames = T)
+rownames(Field_otu_raw) <- Field_otu_raw$ASVs_ID
+Field_otu_raw <- Field_otu_raw[ ,Field_group$Sample_ID]
+Field_otu_raw[1:6, 1:6]
+#colSums(Field_otu_raw)
+
+# Simpson distance matrix
+Field_otu_01 <- t(Field_otu_raw)
+Field_otu_01[Field_otu_01 > 0] = 1 
+fd <- beta.pair(Field_otu_01, index.family = "sorensen")
+Sim_dist_field_mean <- fd$beta.sim
+
+# bray-Curtis
+Field_relative <- decostand(Field_otu_raw, method = "total", MARGIN = 2)
+colSums(Field_relative)
+
+# 
+dim(Field_relative[common_ASVs, ])
+BC_dist_field_shared <- vegdist(t(Field_relative[common_ASVs, ]), method = 'bray')
+field_BC_matrix <- as.matrix(BC_dist_field_shared)
+field_BC_matrix_long <- reshape2::melt(field_BC_matrix, varnames = c("Sample_ID1", "Sample_ID2"), value.name = "field_shared_BC")
+head(field_BC_matrix_long)
+
+# added species informations
+colnames(field_BC_matrix_long)[1] = "Sample_ID"
+field_BC_matrix_long = field_BC_matrix_long %>% left_join(Field_group[,c("Sample_ID", "Species")])
+colnames(field_BC_matrix_long)[4] = "Species_ID1"
+#
+colnames(field_BC_matrix_long)[c(1,2)] = c("Sample_ID1", "Sample_ID")
+field_BC_matrix_long = field_BC_matrix_long %>% left_join(Field_group[,c("Sample_ID", "Species")])
+colnames(field_BC_matrix_long)[5] = "Species_ID2"
+
+head(field_BC_matrix_long)
+
+
+############################# Greenhouse experiment ############################
+# Soil sample grouping information in greenhouse exp.
+Green_group <- read.xlsx("Greenhouse_data_group.xlsx", sheet = "green_group", colNames = T, rowNames = T)
+Green_group$Sample_ID <- rownames(Green_group)
+
+# Soil samples-abundance table in greenhouse exp.
+Green_otu_raw <- read.xlsx("Greenhouse_data_raw_ASVs.xlsx", sheet = "raw_ASVs", colNames = T, rowNames = T)
+rownames(Green_otu_raw) <- Green_otu_raw$ASV_ID
+Green_otu_raw <- Green_otu_raw[ ,Green_group$Sample_ID]
+Green_otu_raw[1:6,1:6]
+#colSums(Green_otu_raw)
+
+# Simpson distance matrix
+Green_otu_01 <- t(Green_otu_raw)
+Green_otu_01[Green_otu_01 > 0] <- 1 
+fd <- beta.pair(Green_otu_01, index.family = "sorensen")
+Sim_dist_green <- fd$beta.sim
+
+# bray-Curtis
+Green_fungi_relative <- decostand(Green_otu_raw, method = "total", MARGIN = 2)
+colSums(Green_fungi_relative)
+
+#
+dim(Green_fungi_relative[common_ASVs, ])
+BC_dist_green_shared <- vegdist(t(Green_fungi_relative[common_ASVs, ]), method = 'bray')
+
+# note:
+# To match the rhizosphere fungal data with the corresponding species from the 
+# field survey, we calculated the mean pairwise dissimilarity values among 
+# species (averaged across three replicate samples).
+
+Green_dist <- as.matrix(BC_dist_green_shared) 
+Green_dist_data <- reshape2::melt(Green_dist, varnames = c("Sample_ID_A", "Sample_ID_B"),
+                                  value.name = "dist", na.rm = T)
+colnames(Green_dist_data)[1] <- "Sample_ID"
+Green_dist_data <- Green_dist_data %>% left_join(Green_group[,c("Sample_ID","Species")], by = "Sample_ID")
+colnames(Green_dist_data)[c(1,2)] <- c("Sample_ID2","Sample_ID")
+Green_dist_data <- Green_dist_data %>% left_join(Green_group[,c("Sample_ID","Species")], by = "Sample_ID")
+aa = Rmisc::summarySE(Green_dist_data, measurevar = c("dist"), groupvars = c("Species.x", "Species.y"))
+Sim_dist_green_mean <- reshape2::dcast(aa, Species.x  ~ Species.y , value.var = "dist")
+rownames(Sim_dist_green_mean) <- Sim_dist_green_mean$Species.x
+Sim_dist_green_mean <- Sim_dist_green_mean[,-1]
+diag(Sim_dist_green_mean) = 0
+
+green_BC_matrix_long <- reshape2::melt(as.matrix(Sim_dist_green_mean), varnames = c("Species_ID1", "Species_ID2"), value.name = "green_shared_BC")
+head(green_BC_matrix_long)
+shard_BC_matrix_long = field_BC_matrix_long %>% left_join(green_BC_matrix_long)
+
+head(shard_BC_matrix_long)
+colnames(shard_BC_matrix_long)[2] = "Sample_ID2"
+
+cor.test(shard_BC_matrix_long$field_shared_BC, shard_BC_matrix_long$green_shared_BC, method = "spearman")
+
+
+library(reshape2)
+
+# field matrix
+field_matrix <- acast(shard_BC_matrix_long, Sample_ID1 ~ Sample_ID2, value.var = "field_shared_BC")
+
+# greenhouse matrix
+green_matrix <- acast(shard_BC_matrix_long, Sample_ID1 ~ Sample_ID2, value.var = "green_shared_BC")
+
+colnames(field_matrix) %in% colnames(green_matrix)
+rownames(field_matrix) %in% rownames(green_matrix)
+
+# reorder
+Field_group = Field_group[colnames(field_matrix), ]
+
+strata_group <- interaction(Field_group$Site, Field_group$Years)
+
+
+# Run Mantel test WITH STRATIFIED PERMUTATIONS constrained within Site x Year
+mantel_stratified <- mantel(as.dist(field_matrix), as.dist(green_matrix), 
+                            method = "spearman", 
+                            strata = strata_group, # Constrains permutations to site-year strata!
+                            permutations = 999)
+
+print(mantel_stratified)
