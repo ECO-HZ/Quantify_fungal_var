@@ -1,205 +1,372 @@
 ################################################################################
-################################## Figure 3 ####################################
+############################ Figure 3 & Table S2 ###############################
 ################################################################################
 
 # Loading the R packages
 library(openxlsx)
-library(dplyr)
-library(ggplot2)
-library(ggstar)
-library(ggtext)
+library(car)
 library(MuMIn)
+library(ggplot2)
+library(glmm.hp)
+library(ggeffects)
 library(patchwork)
+library(ggtext)
+library(dplyr)
+library(lme4)
+library(lmerTest)
 
 # Custom style
-mytheme <- theme_classic() + 
-  theme(panel.background = element_rect(fill = "transparent", color = NA),
-        plot.background = element_rect(fill = "transparent", color = NA),
-        legend.background = element_rect(fill = "transparent", color = NA),
-        legend.box.background = element_rect(fill = "transparent", color = NA),
-        legend.position = "none",
-        legend.key = element_blank(),
-        panel.grid=element_blank(), 
-        legend.title = element_text(size = 9),
-        legend.text = element_text(size = 8),
-        axis.ticks = element_line(color='black'),
-        axis.line = element_line(colour = "black"), 
-        axis.title.x = element_text(colour='black', size=13),
-        axis.title.y = element_text(colour='black', size=13),
-        axis.text = element_text(colour='black',size=11),
-        plot.tag = element_text(size = 14, face = "bold"),
-        plot.title = element_textbox(
-          size = 14, color = "black", fill = "grey90",
-          box.color = "grey50",padding = margin(5, 5, 5, 5), margin = margin(b = 0),       
-          halign = 0.5, width = grid::unit(1, "npc"))) 
+mytheme = theme(panel.background = element_rect(fill='white', colour='black'),
+                legend.position = "none",
+                legend.key = element_blank(),
+                legend.box.background = element_blank(),
+                panel.grid=element_blank(), 
+                legend.title = element_text(size = 11),
+                legend.text = element_text(size = 10),
+                legend.background = element_rect(fill = NA), 
+                axis.ticks = element_line(color='black'),
+                axis.line = element_line(colour = "black"), 
+                axis.title.x = element_text(colour='black', size=13),
+                axis.title.y = element_text(colour='black', size=13),
+                axis.text = element_text(colour='black',size=11),
+                plot.tag = element_text(size = 14, face = "bold")) 
 
 # Loading field survey data
-total_data <- read.xlsx("Field_data_group.xlsx", sheet = "Field_group", rowNames = T, colNames = T)
-total_data$Sample_ID <- rownames(total_data)
+Field_group <- read.xlsx("Field_data_group.xlsx", sheet = "Field_group", rowNames = T, colNames = T)
+Field_group$Sample_ID <- rownames(Field_group)
+Field_group$Years <- as.factor(Field_group$Years)
+Field_group$Site <- factor(Field_group$Site, levels = unique(Field_group$Site[order(Field_group$Latitude)]))
+
+# Calculate environmental effects
+Field_group$Effect_size <- log(Field_group$Fungal_Di_field_all/Field_group$Fungal_Di_green_all)
 
 # Data Transformation
-total_data$Years <- as.factor(total_data$Years)
-total_data$Site <- factor(total_data$Site, levels = unique(total_data$Site[order(total_data$Latitude)]))
+Field_group$RS <- sqrt(Field_group$RS)
+Field_group$SRL <- log10(Field_group$SRL)
+Field_group$Wcont <- sqrt(Field_group$Wcont*100)
+Field_group$Soil_N <- sqrt(Field_group$Soil_N)
+Field_group$Funct_Di_log <- log10(Field_group$Funct_Di)
+Field_group$Phylo_Di_log <- log10(Field_group$Phylo_Di)
 
-total_data$RS <- sqrt(total_data$RS)
-total_data$SRL <- log10(total_data$SRL)
-total_data$Wcont <- sqrt(total_data$Wcont*100)
-total_data$Soil_N <- sqrt(total_data$Soil_N)
-total_data$Funct_Di_log <- log10(total_data$Funct_Di)
-total_data$Phylo_Di_log <- log10(total_data$Phylo_Di)
+# ==============================================================================
+# STEP 1: DECOMPOSE MACRO-CLIMATE VARIABLES (Tave & Precipitation)
+# As requested by Reviewer 1 (temp = grand_mean + site_effect + year_effect + residual)
+# ==============================================================================
 
-cor.test(total_data$Funct_Di_log, total_data$Phylo_Di_log, method = "spearman")
-cor.test(total_data$Funct_Di_log, total_data$Fungal_Di_field_all, method = "spearman")
-cor.test(total_data$Phylo_Di_log, total_data$Fungal_Di_field_all, method = "spearman")
+# Calculate Grand Means
+grand_Tave   <- mean(Field_group$Tave, na.rm = TRUE)
+grand_Precip <- mean(Field_group$Precipitation, na.rm = TRUE)
 
-mod = lm(Fungal_Di_field_all ~ Fungal_Di_green_all, data = total_data)
-Anova(mod)
-AIC(mod)
-AICc(mod)
-summary(mod)
+# Calculate Site Means (Site Effect, 5 df)
+site_means <- Field_group %>%
+  group_by(Site) %>%
+  summarise(Tave_site = mean(Tave, na.rm = TRUE),
+            Precip_site = mean(Precipitation, na.rm = TRUE),
+            .groups = "drop")
 
-# Mean ± 1SE
-total_data_mean <- total_data %>% dplyr::group_by(Site, Years, Latitude) %>%
-  dplyr::summarise(Field_Di = mean(Fungal_Di_field_all, na.rm = TRUE),
-                   Field_Di_se = sd(Fungal_Di_field_all, na.rm = TRUE) / sqrt(n()),
-                   Green_Di = mean(Fungal_Di_green_all, na.rm = TRUE),
-                   Green_Di_se = sd(Fungal_Di_green_all, na.rm = TRUE) / sqrt(n()),
-                   plant_richness = n(),
-                   Funct_DI = mean(Funct_Di_log, na.rm = TRUE),
-                   Phylo_DI = mean(Phylo_Di_log, na.rm = TRUE),
-                   site_pool = mean(Site_pool)) %>%
-  as.data.frame()
+# Calculate Year Means (Year Effect, 2 df)
+year_means <- Field_group %>%
+  group_by(Years) %>%
+  summarise(Tave_year = mean(Tave, na.rm = TRUE),
+            Precip_year = mean(Precipitation, na.rm = TRUE),
+            .groups = "drop")
 
-cor.test(total_data_mean$Field_Di, total_data_mean$plant_richness, method = "spearman")
-plot(total_data_mean$plant_richness, total_data_mean$Field_Di)
+# Merge decomposed components back into Field_group
+Field_group <- Field_group %>%
+  left_join(site_means, by = "Site") %>%
+  left_join(year_means, by = "Years") %>%
+  mutate(
+    # Site x Year Residual Deviation (10 df)
+    Tave_dev   = Tave - Tave_site - Tave_year + grand_Tave,
+    Precip_dev = Precipitation - Precip_site - Precip_year + grand_Precip)
 
-cor.test(total_data_mean$Field_Di, total_data_mean$Funct_DI, method = "spearman")
-plot(total_data_mean$Funct_DI, total_data_mean$Field_Di)
+unique(Field_group$Tave_dev)
+unique(Field_group$Precip_dev)
 
-cor.test(total_data_mean$Field_Di, total_data_mean$Phylo_DI, method = "spearman")
-plot(total_data_mean$Phylo_DI, total_data_mean$Field_Di)
+Field_group_cor = Field_group[,c("Funct_Di_log","Phylo_Di_log",
+                                 "Tave_site","Tave_year","Tave_dev",
+                                 "Precip_site","Precip_year","Precip_dev", 
+                                 "Soil_N", "Soil_ph", "Wcont")]
+colnames(Field_group_cor) = c("Funct-Dist","Phylo-Dist","Spatial temperature","Interannual temperature","Temperature anomaly", 
+                              "Spatial precipitation " ,"Interannual precipitation", "Precipitation anomaly",
+                              "Soil N","Soil pH", "Wcont")
 
-cor.test(total_data_mean$Field_Di, total_data_mean$site_pool, method = "spearman")
-plot(total_data_mean$site_pool, total_data_mean$Field_Di)
+# ==============================================================================
+# STEP 2: NORMALIZE DATA
+# ==============================================================================
+var_select <- c("Effect_size","Site_pool","Phylo_Di","Funct_Di","Phylo_Di_log","Funct_Di_log",
+                "Soil_ph", "Wcont","Soil_N",
+                "Tave_site", "Tave_year", "Tave_dev",
+                "Precip_site", "Precip_year", "Precip_dev",
+                "PCoA1")
 
-# set colors of site
-site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
-                 "Wuhan" = "#32B7B2", "Zhengzhou" = "#75A750", "Tai'an" = "#E69F0D")
+pd_attributes_variable <- attributes(scale(Field_group[var_select]))
+total_data <- Field_group
+total_data[var_select] <- scale(total_data[var_select])
+
+# ==============================================================================
+# STEP 3: GLOBAL LINEAR MIXED MODEL WITH DECOMPOSED CLIMATE TERMS
+# ==============================================================================
+
+fm1 <- lme4::lmer(Effect_size ~ PCoA1 + Phylo_Di_log + Funct_Di_log + Soil_ph + Wcont + Soil_N + 
+                    
+                    # Decomposed Climate Terms
+                    Tave_site + Tave_year + Tave_dev +
+                    Precip_site + Precip_year + Precip_dev +
+                    
+                    # Interactions with Plant Traits
+                    Phylo_Di_log:Tave_site + Phylo_Di_log:Tave_dev + 
+                    Phylo_Di_log:Precip_site + Phylo_Di_log:Precip_dev + 
+                    Phylo_Di_log:Soil_ph + Phylo_Di_log:Wcont + Phylo_Di_log:Soil_N + 
+                    
+                    Funct_Di_log:Tave_site + Funct_Di_log:Tave_dev + 
+                    Funct_Di_log:Precip_site + Funct_Di_log:Precip_dev + 
+                    Funct_Di_log:Soil_ph + Funct_Di_log:Wcont + Funct_Di_log:Soil_N + 
+                    
+                    # Explicit Design Random Factors (Site, Year, Site x Year)
+                    (1|Site) + (1|Years) + (1|Site:Years), 
+                  data = total_data, REML = FALSE)
+
+summary(fm1)
+vif(fm1)
+ranova(fm1)
+
+# The initial model was fitted using maximum likelihood and simplified through backward elimination based on likelihood-ratio tests
+drop1(fm1, test = "Chi") 
+f.sbs1 <- update(fm1, ~. -Funct_Di_log:Precip_site)
+drop1(f.sbs1, test = "Chi") 
+f.sbs2 <- update(f.sbs1, ~. -Phylo_Di_log:Soil_ph)
+drop1(f.sbs2, test = "Chi") 
+f.sbs3 <- update(f.sbs2, ~. -Phylo_Di_log:Precip_dev)
+drop1(f.sbs3, test = "Chi") 
+f.sbs4 <- update(f.sbs3, ~. -Phylo_Di_log:Wcont)
+drop1(f.sbs4, test = "Chi") 
+f.sbs5 <- update(f.sbs4, ~. -Phylo_Di_log:Soil_N)
+drop1(f.sbs5, test = "Chi") 
+f.sbs6 <- update(f.sbs5, ~. -Phylo_Di_log:Precip_site)
+drop1(f.sbs6, test = "Chi") 
+f.sbs7 <- update(f.sbs6, ~. -Funct_Di_log:Tave_site)
+drop1(f.sbs7, test = "Chi") 
+f.sbs8 <- update(f.sbs7, ~. -Precip_site)
+drop1(f.sbs8, test = "Chi") 
+f.sbs9 <- update(f.sbs8, ~. -Funct_Di_log:Precip_dev)
+drop1(f.sbs9, test = "Chi") 
+f.sbs10 <- update(f.sbs9, ~. -Precip_year)
+drop1(f.sbs10, test = "Chi") 
+f.sbs11 <- update(f.sbs10, ~. -Phylo_Di_log:Tave_dev)
+drop1(f.sbs11, test = "Chi") 
+f.sbs12 <- update(f.sbs11, ~. -Funct_Di_log:Soil_ph)
+drop1(f.sbs12, test = "Chi") 
+f.sbs13 <- update(f.sbs12, ~. -Soil_ph)
+drop1(f.sbs13, test = "Chi") 
+f.sbs14 <- update(f.sbs13, ~. -Funct_Di_log:Wcont)
+drop1(f.sbs14, test = "Chi") 
+f.sbs15 <- update(f.sbs14, ~. -Funct_Di_log:Tave_dev)
+drop1(f.sbs15, test = "Chi") 
+f.sbs16 <- update(f.sbs15, ~. -Wcont)
+drop1(f.sbs16, test = "Chi") 
+AIC(f.sbs16)
+
+f.sbs.fin <- update(f.sbs16, REML = TRUE) # Update to REML to extract estimates
+fm1_test <- as_lmerModLmerTest(f.sbs.fin)
+vif(fm1_test)
+anova(fm1_test, ddf = "Kenward-Roger")
+
+
+Table_S2 <- as.data.frame(anova(fm1_test, ddf = "Kenward-Roger"))
+#Table_S2 <- Table_S4[-which(rownames(Table_S2) == "Residuals"),]
+Table_S2$`Pr(>F)` <- round(Table_S2$`Pr(>F)`, 3)
+Table_S2$`F` <- round(Table_S2$`F value`, 2)
+Table_S2$Parameter <- rownames(Table_S2)
+Table_S2$VIF <- round(car::vif(fm1_test), 2)
+
+################################## Figure 4a ###################################
+# Obtaining standardized regression coefficients and their 95% CI
+Final_model = lmer(Effect_size ~ PCoA1 + Tave_site + Tave_year + Tave_dev + Precip_dev + Soil_N + Phylo_Di_log + Funct_Di_log + 
+                     Funct_Di_log:Soil_N + Phylo_Di_log:Tave_site + (1|Site) + (1|Years) + (1|Site:Years), data = total_data)
+model_aov_results = anova(Final_model, ddf = "Kenward-Roger")
+summary(Final_model)
+MuMIn::r.squaredGLMM(Final_model)
+
+as.data.frame(vif(Final_model))
+
+model_aov_results_df = as.data.frame(model_aov_results)
+
+model_aov_results_df$Parameter = rownames(model_aov_results_df)
+
+model_aov_results_df <- model_aov_results_df %>%
+  mutate(Parameter = recode(as.character(Parameter),
+                            "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
+                            "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
+
+summary_Data <- as.data.frame(summary(Final_model))
+
+summary_Data <- as.data.frame(summary(Final_model)$coefficients)
+summary_Data$Parameter <- rownames(summary_Data)
+summary_Data = summary_Data[-1, ]
+
+summary_Data <- summary_Data %>%
+  mutate(Parameter = recode(as.character(Parameter),
+                            "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
+                            "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
+
+################################################################################
+MegaModelSummary <- as.data.frame(effectsize::effectsize(Final_model))[-1,]
+
+MegaModelSummary <- MegaModelSummary %>%
+  mutate(Parameter = recode(as.character(Parameter),
+                            "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
+                            "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
+
+# Relative contribution of variables
+hierarchical_data <- glmm.hp::glmm.hp(Final_model, type = "R2")$hierarchical.partitioning
+hierarchical_data_df = as.data.frame(hierarchical_data)
+hierarchical_data_df$Parameter = rownames(hierarchical_data_df)
+print(hierarchical_data_df)
+
+MegaModelSummary_all = MegaModelSummary %>% left_join(hierarchical_data_df) %>%
+  left_join(model_aov_results_df[,c("Parameter", "Pr(>F)")]) %>%
+  left_join(summary_Data[,c("Parameter", "Estimate", "Std. Error")])
+
+################################## Figure 3a ###################################
+# Obtaining standardized regression coefficients and their 95% CI
+MegaModelSummary_all$Term_display = c("Field fungal composition", "Spatial temperature", "Interannual temperature", "Temperature anomaly",
+                                      "Precipitation anomaly", "Soil N", "Phylo-Dist", "Funct-Dist", 
+                                      "Funct-Dist × Soil N", "Phylo-Dist × Spatial temperature")
+
+MegaModelSummary_all$Term_display = factor(MegaModelSummary_all$Term_display, levels = rev(unique(MegaModelSummary_all$Term_display)))
+
+# add group information
+MegaModelSummary_all$Group <- c("Field com", rep("Climate", 4), rep("Soil properties", 1), 
+                                rep("Plant attributes", 2), rep("Interaction", 2))
+
+MegaModelSummary_all$Group <- factor(MegaModelSummary_all$Group, levels = unique(MegaModelSummary_all$Group))
+
+ggplot(MegaModelSummary_all, aes(x = Term_display, y = Std_Coefficient, fill = Group))+
+  geom_hline(yintercept = 0, linetype = 1, color = "grey") +
+  geom_errorbar(aes(ymin = CI_low, ymax = CI_high), width=0, size = 0.8, color = "black")+
+  geom_point(size = 3.5, pch = 21) +
+  #geom_segment(aes(y = 0, yend = 0, x = 0.5, xend = 12.3), color = "black", linetype = "dashed") + 
+  geom_text(aes(y = CI_high, label = paste("italic(p)==", round(`Pr(>F)`, 3))),
+            parse = TRUE, hjust = -0.4, vjust = 0.4, size = 4) + 
+  labs(x = NULL, 
+       y = 'Parameter estimates', 
+       #title = "Best model: <i>R</i><sup>2</sup> = 0.320", 
+       tag = "(a)") +  
+  theme_classic() + coord_flip() +  
+  scale_fill_manual(values = c("Field com" = "#BC5546", "Climate" = "#2F4590", "Soil properties" = "#6EA3C5",
+                               "Plant attributes" = "#8E333A", "Interaction" = "#EFA961")) +
+  theme(axis.text = element_text(color = "black", size = 12),
+        axis.title =  element_text(color = "black", size = 14),
+        legend.text = element_text(size = 9, color = "black"),
+        plot.title = element_textbox(size = 12, color = "black", fill = "white",     
+                                     box.color = "black", width = grid::unit(1, "npc"),padding = margin(5, 5, 5, 5),  
+                                     margin = margin(b = 5), halign = 0.5,linetype = "solid"),
+        plot.margin = margin(0.5,1.5,0.5,1.5, unit = "cm"),
+        legend.position = 'none',
+        plot.tag = element_text(size = 14, face = "bold")) +
+  scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) + 
+  scale_shape_manual(values = c(16,21)) -> Figure_3a1; Figure_3a1
+
+################################################################################
+MegaModelSummary_deal2 = MegaModelSummary_all %>% group_by(Group) %>%
+  summarise(explained_all = sum(`I.perc(%)`))
+
+MegaModelSummary_deal2$explained_all2 = (MegaModelSummary_deal2$explained_all)/sum(MegaModelSummary_deal2$explained_all)*100
+
+ggplot(MegaModelSummary_deal2, aes(x = "Importance", y = explained_all2, fill = Group, color = Group)) +
+  geom_col(width = 1) +
+  #scale_fill_viridis(option = "D", direction = -1) + # + 
+  theme_classic()+ 
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0), position = "right") +
+  scale_color_manual(values = c("Field com" = "#BC5546", "Climate" = "#2F4590", "Soil properties" = "#6EA3C5",
+                                "Plant attributes" = "#8E333A", "Interaction" = "#EFA961")) +
+  scale_fill_manual(values = c("Field com" = "#BC5546", "Climate" = "#2F4590", "Soil properties" = "#6EA3C5",
+                               "Plant attributes" = "#8E333A", "Interaction" = "#EFA961")) +
+  theme(panel.grid = element_blank(), 
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_blank(), 
+        axis.title =  element_text(color = "black", size = 14),
+        axis.line.x = element_line(color = "black"),
+        axis.line.y = element_line(color = "black"),
+        axis.text = element_text(size = 12, color = "black"),
+        legend.position = "none") + 
+  labs(x = '', y = "Relative effect of estimates (%)") -> Figure_3a2; Figure_3a2
+
+# 9.11 x 10.10
+Figure_3a1+Figure_3a2 + plot_layout(widths = c(0.9,0.1)) -> Figure_3a; Figure_3a
+#ggsave("Figure_3a.pdf", plot = Figure_3a, width = 9.11, height = 10.10, units = "in", dpi = 300)
+
+################################## Figure 3b ###################################
+pred_mode <- ggeffect(Final_model, terms = c("Soil_N","Funct_Di_log"))
+eff_mod_data <- data.frame(pred_mode)
+colnames(eff_mod_data)[1] <- "Soil_N"
+colnames(eff_mod_data)[2] <- "Effect_size"
+colnames(eff_mod_data)[6] <- "Funct_Di_log"
+
+# back transform attributes_variable
+eff_mod_data["Soil_N"] <- pd_attributes_variable$`scaled:center`["Soil_N"] + 
+  pd_attributes_variable$`scaled:scale`["Soil_N"]*eff_mod_data["Soil_N"]
+
+eff_mod_data["Effect_size"] <- pd_attributes_variable$`scaled:center`["Effect_size"] + 
+  pd_attributes_variable$`scaled:scale`["Effect_size"]*eff_mod_data["Effect_size"]
+
+eff_mod_data$Funct_Di_log <- ifelse(eff_mod_data$Funct_Di_log == "-1", "Low Funct−Dist (-1 SD)", 
+                                    ifelse(eff_mod_data$Funct_Di_log == "0", "Mean Funct−Dist", "High Funct−Dist (+1 SD)"))
+eff_mod_data$Funct_Di_log <- factor(eff_mod_data$Funct_Di_log, levels = c("Low Funct−Dist (-1 SD)", "Mean Funct−Dist", "High Funct−Dist (+1 SD)"))
 
 ggplot()+
-  geom_point(total_data, mapping = aes(Fungal_Di_green_all, Fungal_Di_field_all, color = Site, fill = Site, shape = Years), size = 2) + 
-  scale_color_manual(values = site_colors) +
-  scale_fill_manual(values = site_colors) +
-  labs(y = "Composition distinctiveness\nestimated in field survey", 
-       x = "Composition distinctiveness\nestimated in greenhouse experiment", tag = "(a)") +
-  scale_shape_manual(values = c(24,21,25)) + 
-  geom_abline(intercept=0,slope=1 , linetype = 1, color = "#96383E", size = 0.8)+
-  mytheme + 
-  #geom_smooth(data = total_data, aes(x =Fungal_Di_green_all , y = Fungal_Di_field_all), 
-  #            method = "lm", formula = y ~ x, color = "black", se = F, linetype = 2, size = 0.8) + 
-  theme_bw() + mytheme + 
-  theme(legend.position = "right") + 
-  #annotate("segment", x = 0.56, xend = 0.59, y = 0.93, yend = 0.93, size = 1, color = "#96383E") + 
-  #annotate("text", x = 0.62, y = 0.93, label = "1:1 line", size = 4) +
-  #annotate("segment", x = 0.56, xend = 0.59, y = 0.91, yend = 0.91, size = 1, color = "black") + 
-  #annotate("text", x = 0.625, y = 0.91, label = "Model fit", size = 4) + 
-  annotate("text", x = 0.68, y = 0.610, label = "F[1*','*383] < 0.01", parse = TRUE, size = 4) + 
-  annotate("text", x = 0.68, y = 0.590, label = "italic(R)^2 < 0.01", parse = TRUE, size = 4) + 
-  annotate("text", x = 0.68, y = 0.560, label = "italic(p) == 0.945", parse = TRUE, size = 4) +
-  scale_x_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) +
-  scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) -> Figure_3a; Figure_3a
+  geom_line(data = eff_mod_data, mapping = aes(Soil_N, Effect_size, color = factor(Funct_Di_log)), size = 1.25) +
+  labs(x = expression("Soil total nitrogen content (%, sqrt)"), 
+       y = bquote(atop("Environmental effects", 
+                       Ln ~ "(" ~ frac(Fungi-dist[" estimated in field"], 
+                                       Fungi-dist[" estimated in greenhouse"]) ~ ")")),
+       tag = "(b)", color = expression("Phylo Di(log"[10]*"(10)")) +
+  geom_hline(yintercept = 0, linetype = 1, color = "grey") +
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.01)) +
+  scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
+  scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Funct-Dist") +
+  annotate("text", label = expression(italic(p) == 0.049), x = 0.6, y = -0.12, size = 4) + 
+  mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_3b; Figure_3b
+
+################################## Figure 4c ###################################
+pred_mode <- ggeffect(Final_model, terms = c("Tave_site","Phylo_Di_log"))
+eff_mod_data <- data.frame(pred_mode)
+colnames(eff_mod_data)[1] = "Tave_site"
+colnames(eff_mod_data)[2] <- "Effect_size"
+colnames(eff_mod_data)[6] = "Phylo_Di_log"
+
+# back transform attributes_variable
+eff_mod_data["Tave_site"] <- pd_attributes_variable$`scaled:center`["Tave_site"] + 
+  pd_attributes_variable$`scaled:scale`["Tave_site"]*eff_mod_data["Tave_site"]
+
+eff_mod_data["Effect_size"] <- pd_attributes_variable$`scaled:center`["Effect_size"] + 
+  pd_attributes_variable$`scaled:scale`["Effect_size"]*eff_mod_data["Effect_size"]
+
+eff_mod_data$Phylo_Di_log <- ifelse(eff_mod_data$Phylo_Di_log == "-1", "Low Phylo−Dist (- 1 SD)", 
+                                    ifelse(eff_mod_data$Phylo_Di_log == "0", "Mean Phylo−Dist", "High Phylo−Dist (+ 1 SD)"))
+eff_mod_data$Phylo_Di_log <- factor(eff_mod_data$Phylo_Di_log, levels = c("Low Phylo−Dist (- 1 SD)", "Mean Phylo−Dist", "High Phylo−Dist (+ 1 SD)"))
 
 
-# calculate environmental effects
-total_data$Effect_size <- log(total_data$Fungal_Di_field_all/total_data$Fungal_Di_green_all)
+ggplot()+
+  geom_line(data = eff_mod_data, mapping = aes(Tave_site, Effect_size, color = factor( Phylo_Di_log)), size = 1.25) +
+  labs(x = expression("Spatial temperature (°C)"), 
+       y = bquote(atop("Environmental effects", 
+                       Ln ~ "(" ~ frac(Fungi-dist[" estimated in field"], 
+                                       Fungi-dist[" estimated in greenhouse"]) ~ ")")),
+       tag = "(c)", color = expression("Phylo Di(log"[10]*"(10)")) +
+  geom_hline(yintercept = 0, linetype = 1, color = "grey") +
+  scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
+  scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Phylo-Dist") +
+  annotate("text", label = expression(italic(p) == 0.026), x = 21, y = -0.03, size = 4) + 
+  mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_3c; Figure_3c
 
-total_data2 = total_data %>% dplyr::group_by(Site, Years, Latitude) %>%
-  mutate(plant_richness = n())
-cor.test(total_data2$plant_richness, total_data2$Effect_size)
+# 
+Figure_3a
+Figure_3b/Figure_3c -> Figure_3_right
+#ggsave("Figure_3a_0730.pdf", plot = Figure_3a, width = 8.5, height = 8, units = "in", dpi = 300)
+#ggsave("Figure_3b_0730.pdf", plot = Figure_3_right, width = 4.5, height = 7.8, units = "in", dpi = 300)
 
-# Mean ± 1SE
-Effect_size_mean <- total_data %>% dplyr::group_by(Site, Years, Latitude) %>%
-  dplyr::summarise(Effect_size_mean = mean(Effect_size, na.rm = TRUE),
-                   Effect_size_se = sd(Effect_size, na.rm = TRUE) / sqrt(n()),
-                   Phylo_DI = mean(Phylo_Di_log, na.rm = TRUE),
-                   Funct_DI = mean(Funct_Di_log, na.rm = TRUE),
-                   plant_richness = n(),
-                   site_pool = mean(Site_pool)) %>%
-  as.data.frame()
-
-cor.test(Effect_size_mean$Funct_DI, Effect_size_mean$Effect_size_mean, method = "spearman")
-cor.test(Effect_size_mean$Phylo_DI, Effect_size_mean$Effect_size_mean, method = "spearman")
-cor.test(Effect_size_mean$site_pool, Effect_size_mean$Effect_size_mean, method = "spearman")
-cor.test(Effect_size_mean$plant_richness, Effect_size_mean$Effect_size_mean, method = "spearman")
-
-
-# T.test
-Years <- unique(total_data$Years)
-Latitude <- unique(total_data$Latitude)
-final_result_t <- NULL
-
-for (Y in Years) {
-  for (L in Latitude) {
-    group_di <- subset(total_data, Years == Y & Latitude == L)
-    X <-  group_di$Effect_size
-    # 
-    result_t <- t.test(X, mu = 0)
-    result_t_test <- data.frame(Years = Y, Latitude = L, t_value = result_t$statistic,
-                                p_value = result_t$p.value)
-    final_result_t <- rbind(final_result_t, result_t_test)
-    rownames(final_result_t) = NULL
-  }
-}
-
-final_result_t$p_value <- round(final_result_t$p_value, 3)
-print(subset(final_result_t, p_value >= 0.05))
-
-
-Effect_size_mean = Effect_size_mean %>% left_join(final_result_t)
-Effect_size_mean$sig <- ifelse(Effect_size_mean$p_value > 0.05, 0, 1)
-
-Effect_size_mean$Years = as.factor(Effect_size_mean$Years)
-
-# plot
-ggplot() + 
-  geom_errorbar(data = Effect_size_mean, 
-                mapping = aes(x = Site, ymax = Effect_size_mean+Effect_size_se, 
-                              ymin=Effect_size_mean-Effect_size_se, color = Years, group = Years),
-                width = 0, alpha = 1, color = "black", position = position_dodge(width = 0.3))+
-  geom_point(data = subset(Effect_size_mean, Years == 2018 & Latitude != 23.1), 
-             mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = -0.1), size = 2.8, show.legend = FALSE) +
-  geom_point(data = subset(Effect_size_mean, Years == 2018 & Latitude == 23.1), 
-             mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = -0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#87898A") +
-  geom_point(data = subset(Effect_size_mean, Years == 2020 & Latitude != 23.1), 
-             mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = -0.0), size = 2.8, show.legend = FALSE) +
-  geom_point(data = subset(Effect_size_mean, Years == 2020 & Latitude == 23.1), 
-             mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = -0.0), size = 2.8, show.legend = FALSE, fill = "white", color = "#87898A") +
-  geom_point(data = subset(Effect_size_mean, Years == 2021 & Latitude != 27.9 & Latitude != 30.5), 
-             mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE) +
-  geom_point(data = subset(Effect_size_mean, Years == 2021 & Latitude == 27.9), 
-             mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#41479F") +
-  geom_point(data = subset(Effect_size_mean, Years == 2021 & Latitude == 30.5), 
-             mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#32B7B2") +
-  scale_shape_manual(values = c("2018" = 24, "2020" = 21, "2021" = 25)) +
-  #scale_color_manual(values = site_colors) +
-  scale_fill_manual(values = site_colors) +
-  geom_hline(yintercept = 0, linetype = 2) +
-  mytheme + theme(legend.position = "right") +
-  theme(legend.position = c(0.35,0.25),
-        axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1)) + 
-  scale_y_continuous(labels = scales::label_number(accuracy = 0.01)) + 
-  labs(#x = "Latitude (North degrees)", 
-    x = NULL,
-    y = bquote(atop("Environmental effects", 
-                    Ln ~ "(" ~ frac(Fungi-dist[" estimated in field"], 
-                                    Fungi-dist[" estimated in greenhouse"]) ~ ")")),
-    tag = "(b)") -> Figure_3b; Figure_3b
-
-Figure_3a|Figure_3b
