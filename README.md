@@ -9,6 +9,14 @@ DATA & FILE OVERVIEW
     * 1. Field_data_group.xlsx  
     * 2. Greenhouse_data_group.xlsx  
     * 3. Site_information_seed.xlsx  
+    * 4. Sim_dist_field_all.rds
+    * 5. Sim_dist_green_all.rds
+    * 6. Sim_dist_field_Shared.rds
+    * 7. Sim_dist_green_Shared.rds
+    * 8. BC_dist_field_shared.rds
+    * 9. BC_dist_green_shared.rds
+    * 10. diff_BC_merge_all.rds
+    * 11. BC_dist_field_all.rds
     
 *List of phylogenetic tree data files (.newick)*  
 
@@ -41,10 +49,6 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * 02_Distinctiveness index calculation.R  
       We sequentially calculated distinctiveness indices for plant functional traits, phylogenetic relationships, and fungal community composition based on a common distinctiveness metric.
     
-**Data-specific onformation for:** ***Field_data_raw_ASVs.xlsx***
-
-    * Abundance table of raw sequencing data of rhizosphere fungi from field survey (not rarefied to minimum sample size).
-
 **Data-specific onformation for:** ***Field_data_group.xlsx***
 
     Variable list	         Description
