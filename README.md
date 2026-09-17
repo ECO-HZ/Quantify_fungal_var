@@ -121,11 +121,13 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 
 **Data-specific onformation for:** ***4. Sim_dist_field_all.rds***
   
-  * Description: Simpson dissimilarity matrix for field survey samples based on all ASVs.
+    Description: Simpson dissimilarity matrix for field survey samples based on all ASVs.
+
 
 **Data-specific onformation for:** ***5. Sim_dist_green_all.rds***
   
   * Description: Simpson dissimilarity matrix for greenhouse experiment samples based on all ASVs.
+
 
 **Data-specific onformation for:** ***6. Sim_dist_field_Shared.rds***
   
