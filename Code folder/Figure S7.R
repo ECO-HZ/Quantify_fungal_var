@@ -3,35 +3,35 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(vegan)
-library(ggplot2)
-library(dplyr)
-library(ggtext)
-library(patchwork)
-library(viridis)
+library(openxlsx) # version 4.2.5.2
+library(vegan) # version 2.6.4
+library(ggplot2) # version 3.5.2
+library(dplyr) # version 1.1.1
+library(ggtext) # version 0.1.2
+library(patchwork) # version 1.3.1
+library(viridis) # version ‘0.6.5
 
 # Custom style
-mytheme <- theme_classic() + 
-  theme(panel.background = element_rect(fill = "transparent", color = NA),
-        plot.background = element_rect(fill = "transparent", color = NA),
-        legend.background = element_rect(fill = "transparent", color = NA),
-        legend.box.background = element_rect(fill = "transparent", color = NA),
-        legend.position = "none",
-        legend.key = element_blank(),
-        panel.grid=element_blank(), 
-        legend.title = element_text(size = 10),
-        legend.text = element_text(size = 10),
-        axis.ticks = element_line(color='black'),
-        axis.line = element_line(colour = "black"), 
-        axis.title.x = element_text(colour='black', size=13),
-        axis.title.y = element_text(colour='black', size=13),
-        axis.text = element_text(colour='black',size=11),
-        plot.tag = element_text(size = 14, face = "bold"),
-        plot.title = element_textbox(
-          size = 14, color = "black", fill = "grey90",
-          box.color = "grey50",padding = margin(5, 5, 5, 5), margin = margin(b = 0),       
-          halign = 0.5, width = grid::unit(1, "npc"))) 
+mytheme <- theme(panel.background = element_rect(fill = "transparent", color = NA),
+                 plot.background = element_rect(fill = "transparent", color = NA),
+                 legend.background = element_rect(fill = "transparent", color = NA),
+                 legend.box.background = element_rect(fill = "transparent", color = NA),
+                 legend.position = "none",
+                 legend.key = element_blank(),
+                 panel.grid=element_blank(), 
+                 legend.title = element_text(size = 10),
+                 legend.text = element_text(size = 10),
+                 axis.ticks = element_line(color='black'),
+                 axis.line = element_line(colour = "black"), 
+                 axis.title.x = element_text(colour='black', size=13),
+                 axis.title.y = element_text(colour='black', size=13),
+                 axis.text = element_text(colour='black',size=11),
+                 plot.tag = element_text(size = 14, face = "bold"),
+                 plot.title = element_textbox(
+                   size = 14, color = "black", fill = "grey90",
+                   box.color = "grey50",padding = margin(5, 5, 5, 5), margin = margin(b = 0),       
+                   halign = 0.5, width = grid::unit(1, "npc"))) 
+  
 
 ################################ (Field survey) ################################
 # Soil sample grouping information
@@ -52,7 +52,7 @@ dim(Field_otu_raw)
 # Data Transformation
 Field_group <- Field_group[colnames(Field_otu_raw), ] # reorder
 Field_group$Years <- as.factor(Field_group$Years)
-Field_group$Site <- as.factor(Field_group$Site)
+Field_group$Site <- factor(Field_group$Site, levels = unique(Field_group$Site[order(Field_group$Latitude)]))
 Field_group$RS <- sqrt(Field_group$RS)
 Field_group$SRL <- log10(Field_group$SRL)
 Field_group$Wcont <- sqrt(Field_group$Wcont*100)
@@ -64,6 +64,8 @@ Field_group$Phylo_Di_log <- log10(Field_group$Phylo_Di)
 fungi_relative <- decostand(Field_otu_raw, method = "total", MARGIN = 2)
 colSums(fungi_relative)
 BC_dist_RE_abun <- vegdist(t(fungi_relative), method = 'bray')
+saveRDS(BC_dist_RE_abun, file = "BC_dist_field_all.rds")
+BC_dist_RE_abun <- readRDS("BC_dist_field_all.rds")
 
 ################################### Figure S7 ##################################
 # Principal Coordinates Analysis (PCoA)
