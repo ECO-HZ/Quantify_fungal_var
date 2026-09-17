@@ -28,7 +28,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 
 *List of R-scripts*
 
-    * 1. Figure 1.pdf
+    * 1. Figure 1.tif
     * 2. Figure 2.R  
     * 3. Figure 3 & Table S2.R  
     * 5. Figure S1.R  
