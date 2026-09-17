@@ -4,18 +4,11 @@ DATA & FILE OVERVIEW
 
 ***In Data folder***
 
-The experimental data are stored in Figshare [![DOI](https://zenodo.org/badge/DOI/10.6084/m9.figshare.27880494.svg)](https://doi.org/10.6084/m9.figshare.27880494.v5).
-Before the manuscript is officially published, experimental and analytical data must remain confidential. 
-If needed, please contact the first or corresponding author in advance to obtain the relevant experimental data. 
-All data will be made available upon acceptance of the manuscript.
-
 *List of experimental data files (.xlsx)*
 
-    * 1. Field_data_raw_ASVs.xlsx  
-    * 2. Field_data_group.xlsx  
-    * 3. Greenhouse_data_raw_ASVs.xlsx  
-    * 4. Greenhouse_data_group.xlsx  
-    * 5. Site_information_seed.xlsx  
+    * 1. Field_data_group.xlsx  
+    * 2. Greenhouse_data_group.xlsx  
+    * 3. Site_information_seed.xlsx  
     
 *List of phylogenetic tree data files (.newick)*  
 
