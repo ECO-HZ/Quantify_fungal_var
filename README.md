@@ -126,30 +126,37 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 
 **Data-specific onformation for:** ***5. Sim_dist_green_all.rds***
   
-  * Description: Simpson dissimilarity matrix for greenhouse experiment samples based on all ASVs.
+    Description: Simpson dissimilarity matrix for greenhouse experiment samples based on all ASVs.
 
 
 **Data-specific onformation for:** ***6. Sim_dist_field_Shared.rds***
   
-  * Description: Simpson dissimilarity matrix for field survey samples based on ASVs shared between field and greenhouse datasets.
+    Description: Simpson dissimilarity matrix for field survey samples based on ASVs shared between field and greenhouse datasets.
 
 
 **Data-specific onformation for:** ***7. Sim_dist_green_Shared.rds***
   
-  * Description: Simpson dissimilarity matrix for greenhouse experiment samples based on ASVs shared between field and greenhouse datasets.
+    Description: Simpson dissimilarity matrix for greenhouse experiment samples based on ASVs shared between field and greenhouse datasets.
+
 
 **Data-specific onformation for:** ***8. BC_dist_field_shared.rds***
   
-  * Description: Pairwise Bray–Curtis dissimilarity matrix calculated for field survey samples using ASVs shared between field and greenhouse datasets.
+    Description: Pairwise Bray–Curtis dissimilarity matrix calculated for field survey samples using ASVs shared between field and greenhouse datasets.
+
 
 **Data-specific onformation for:** ***9. BC_dist_green_shared.rds***
   
-  * Description: Pairwise Bray–Curtis dissimilarity matrix calculated for greenhouse experiment samples using ASVs shared between field and greenhouse datasets.
+    Description: Pairwise Bray–Curtis dissimilarity matrix calculated for greenhouse experiment samples using ASVs shared between field and greenhouse datasets.
+
 
 **Data-specific onformation for:** ***10. diff_BC_merge_all.rds***
   
-  * Description: This dataset was used to assess the contributions of shared fungal taxa to rhizosphere fungal community compositional variation (Bray–Curtis dissimilarity) among co-occurring plant species in the field survey and greenhouse experiment.
+   Description: This dataset was used to assess the contributions of shared fungal taxa to rhizosphere fungal community compositional variation (Bray–Curtis dissimilarity) among co-occurring plant species in the field survey and greenhouse experiment.
+   
 
 **Data-specific onformation for:** ***11. BC_dist_field_all.rds***
+  
   Description: Pairwise Bray–Curtis dissimilarity matrix calculated  for field survey samples based on all ASVs.
+
+  
   
