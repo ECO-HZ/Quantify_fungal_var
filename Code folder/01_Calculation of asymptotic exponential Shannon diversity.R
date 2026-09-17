@@ -3,8 +3,8 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(iNEXT)
+library(openxlsx) # version 4.2.5.2
+library(iNEXT) # version 3.0.1
 
 ################################# Field survey ################################# 
 # Soil sample grouping information
