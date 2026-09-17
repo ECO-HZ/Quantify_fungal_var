@@ -49,7 +49,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * 02_Distinctiveness index calculation.R  
       We sequentially calculated distinctiveness indices for plant functional traits, phylogenetic relationships, and fungal community composition based on a common distinctiveness metric.
     
-**Data-specific onformation for:** ***Field_data_group.xlsx***
+**Data-specific onformation for:**1. ***Field_data_group.xlsx***
 
     Variable list (Description)	         
     * Sample_ID: Sample id of  plant rhizosphere soil 
