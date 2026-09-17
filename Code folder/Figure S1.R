@@ -3,17 +3,18 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(dplyr)
-library(tidygeocoder)
-library(sf)
-library(ggplot2)
-library(ggspatial)
-library(gt)
-library(tidyverse)
-library(glue)
-library(ggtree)
-library(phytools)
+library(openxlsx) # version 4.2.5.2
+library(dplyr) # version 1.1.1
+library(tidygeocoder) # version 1.0.5
+library(sf) # version 1.0.14
+library(ggplot2) # version 3.5.2
+library(ggspatial) # version 1.1.9
+#devtools::install_github("rstudio/gt")
+library(gt) # version 
+library(tidyverse) # version 2.0.0
+library(glue) # version 1.6.2
+library(ggtree) # version 3.2.1
+library(phytools) # version 2.1.1
 
 # Loading seed collection location information
 seed_data <- read.xlsx("Site_information_seed.xlsx", sheet = "site_map", rowNames = F, colNames = T)
@@ -82,5 +83,3 @@ gt(seed_site_infor)
 
 ### Notice that,
 ### For more picture details, we have further adjusted it in Adobe illustrator.
-
-
