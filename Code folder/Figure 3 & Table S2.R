@@ -3,33 +3,34 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(car)
-library(MuMIn)
-library(ggplot2)
-library(glmm.hp)
-library(ggeffects)
-library(patchwork)
-library(ggtext)
-library(dplyr)
-library(lme4)
-library(lmerTest)
+library(openxlsx) # version 4.2.5.2
+library(car) # version 3.1.1
+library(MuMIn) # version 1.46.0
+library(ggplot2) # version 3.5.2
+library(glmm.hp) # version 0.1.7
+library(ggeffects) # version 1.5.0
+library(patchwork) # version 1.3.1
+library(ggtext) # version 0.1.2
+library(dplyr) # version 1.1.1
+library(lme4) # version 1.1.34
+library(lmerTest) # version 3.1.3
 
 # Custom style
-mytheme = theme(panel.background = element_rect(fill='white', colour='black'),
-                legend.position = "none",
-                legend.key = element_blank(),
-                legend.box.background = element_blank(),
-                panel.grid=element_blank(), 
-                legend.title = element_text(size = 11),
-                legend.text = element_text(size = 10),
-                legend.background = element_rect(fill = NA), 
-                axis.ticks = element_line(color='black'),
-                axis.line = element_line(colour = "black"), 
-                axis.title.x = element_text(colour='black', size=13),
-                axis.title.y = element_text(colour='black', size=13),
-                axis.text = element_text(colour='black',size=11),
-                plot.tag = element_text(size = 14, face = "bold")) 
+mytheme = theme_classic() + 
+  theme(#panel.background = element_rect(fill='white', colour='black'),
+    legend.position = "none",
+    legend.key = element_blank(),
+    legend.box.background = element_blank(),
+    panel.grid=element_blank(), 
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    legend.background = element_rect(fill = NA), 
+    axis.ticks = element_line(color='black'),
+    axis.line = element_line(colour = "black"), 
+    axis.title.x = element_text(colour='black', size=13),
+    axis.title.y = element_text(colour='black', size=13),
+    axis.text = element_text(colour='black',size=11),
+    plot.tag = element_text(size = 14, face = "bold")) 
 
 # Loading field survey data
 Field_group <- read.xlsx("Field_data_group.xlsx", sheet = "Field_group", rowNames = T, colNames = T)
@@ -161,9 +162,9 @@ f.sbs13 <- update(f.sbs12, ~. -Soil_ph)
 drop1(f.sbs13, test = "Chi") 
 f.sbs14 <- update(f.sbs13, ~. -Funct_Di_log:Wcont)
 drop1(f.sbs14, test = "Chi") 
-f.sbs15 <- update(f.sbs14, ~. -Funct_Di_log:Tave_dev)
+f.sbs15 <- update(f.sbs14, ~. -Wcont)
 drop1(f.sbs15, test = "Chi") 
-f.sbs16 <- update(f.sbs15, ~. -Wcont)
+f.sbs16 <- update(f.sbs15, ~. -Funct_Di_log:Tave_dev)
 drop1(f.sbs16, test = "Chi") 
 AIC(f.sbs16)
 
@@ -172,13 +173,13 @@ fm1_test <- as_lmerModLmerTest(f.sbs.fin)
 vif(fm1_test)
 anova(fm1_test, ddf = "Kenward-Roger")
 
-
 Table_S2 <- as.data.frame(anova(fm1_test, ddf = "Kenward-Roger"))
 #Table_S2 <- Table_S4[-which(rownames(Table_S2) == "Residuals"),]
 Table_S2$`Pr(>F)` <- round(Table_S2$`Pr(>F)`, 3)
 Table_S2$`F` <- round(Table_S2$`F value`, 2)
 Table_S2$Parameter <- rownames(Table_S2)
 Table_S2$VIF <- round(car::vif(fm1_test), 2)
+MuMIn::r.squaredGLMM(fm1_test)
 
 ################################## Figure 4a ###################################
 # Obtaining standardized regression coefficients and their 95% CI
@@ -188,25 +189,12 @@ model_aov_results = anova(Final_model, ddf = "Kenward-Roger")
 summary(Final_model)
 MuMIn::r.squaredGLMM(Final_model)
 
-as.data.frame(vif(Final_model))
-
 model_aov_results_df = as.data.frame(model_aov_results)
 
 model_aov_results_df$Parameter = rownames(model_aov_results_df)
 
 model_aov_results_df <- model_aov_results_df %>%
-  mutate(Parameter = recode(as.character(Parameter),
-                            "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
-                            "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
-
-summary_Data <- as.data.frame(summary(Final_model))
-
-summary_Data <- as.data.frame(summary(Final_model)$coefficients)
-summary_Data$Parameter <- rownames(summary_Data)
-summary_Data = summary_Data[-1, ]
-
-summary_Data <- summary_Data %>%
-  mutate(Parameter = recode(as.character(Parameter),
+  dplyr::mutate(Parameter = dplyr::recode(as.character(Parameter),
                             "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
                             "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
 
@@ -214,7 +202,7 @@ summary_Data <- summary_Data %>%
 MegaModelSummary <- as.data.frame(effectsize::effectsize(Final_model))[-1,]
 
 MegaModelSummary <- MegaModelSummary %>%
-  mutate(Parameter = recode(as.character(Parameter),
+  mutate(Parameter = dplyr::recode(as.character(Parameter),
                             "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
                             "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
 
@@ -224,15 +212,15 @@ hierarchical_data_df = as.data.frame(hierarchical_data)
 hierarchical_data_df$Parameter = rownames(hierarchical_data_df)
 print(hierarchical_data_df)
 
-MegaModelSummary_all = MegaModelSummary %>% left_join(hierarchical_data_df) %>%
-  left_join(model_aov_results_df[,c("Parameter", "Pr(>F)")]) %>%
-  left_join(summary_Data[,c("Parameter", "Estimate", "Std. Error")])
+MegaModelSummary_all = MegaModelSummary %>% 
+  left_join(hierarchical_data_df) %>%
+  left_join(model_aov_results_df[,c("Parameter", "Pr(>F)")])
 
 ################################## Figure 3a ###################################
 # Obtaining standardized regression coefficients and their 95% CI
-MegaModelSummary_all$Term_display = c("Field fungal composition", "Spatial temperature", "Interannual temperature", "Temperature anomaly",
-                                      "Precipitation anomaly", "Soil N", "Phylo-Dist", "Funct-Dist", 
-                                      "Funct-Dist × Soil N", "Phylo-Dist × Spatial temperature")
+MegaModelSummary_all$Term_display = c("Field fungal composition", "Site temperature", "Year temperature", "Site × Year temp anomaly",
+                                      "Site × Year precip anomaly", "Soil N", "Phylo-Dist", "Funct-Dist", 
+                                      "Funct-Dist × Soil N", "Phylo-Dist × Site temperature")
 
 MegaModelSummary_all$Term_display = factor(MegaModelSummary_all$Term_display, levels = rev(unique(MegaModelSummary_all$Term_display)))
 
@@ -247,11 +235,11 @@ ggplot(MegaModelSummary_all, aes(x = Term_display, y = Std_Coefficient, fill = G
   geom_errorbar(aes(ymin = CI_low, ymax = CI_high), width=0, size = 0.8, color = "black")+
   geom_point(size = 3.5, pch = 21) +
   #geom_segment(aes(y = 0, yend = 0, x = 0.5, xend = 12.3), color = "black", linetype = "dashed") + 
-  geom_text(aes(y = CI_high, label = paste("italic(p)==", round(`Pr(>F)`, 3))),
-            parse = TRUE, hjust = -0.4, vjust = 0.4, size = 4) + 
+  geom_text(aes(y = Std_Coefficient, label = paste("italic(p)==", round(`Pr(>F)`, 3))),
+            parse = TRUE, hjust = 0.4, vjust = -0.4, size = 4) + 
   labs(x = NULL, 
        y = 'Parameter estimates', 
-       #title = "Best model: <i>R</i><sup>2</sup> = 0.320", 
+       #title = "Best model: <i>R</i><sup>2</sup> = 0.292", 
        tag = "(a)") +  
   theme_classic() + coord_flip() +  
   scale_fill_manual(values = c("Field com" = "#BC5546", "Climate" = "#2F4590", "Soil properties" = "#6EA3C5",
@@ -265,6 +253,7 @@ ggplot(MegaModelSummary_all, aes(x = Term_display, y = Std_Coefficient, fill = G
         plot.margin = margin(0.5,1.5,0.5,1.5, unit = "cm"),
         legend.position = 'none',
         plot.tag = element_text(size = 14, face = "bold")) +
+  annotate("text", x = 10, y = 0.590, label = "italic(R)^2*m == 0.292", parse = TRUE, size = 4) + 
   scale_x_discrete(expand = expansion(mult = c(0.05, 0.05))) + 
   scale_shape_manual(values = c(16,21)) -> Figure_3a1; Figure_3a1
 
@@ -294,7 +283,7 @@ ggplot(MegaModelSummary_deal2, aes(x = "Importance", y = explained_all2, fill = 
         axis.line.y = element_line(color = "black"),
         axis.text = element_text(size = 12, color = "black"),
         legend.position = "none") + 
-  labs(x = '', y = "Relative effect of estimates (%)") -> Figure_3a2; Figure_3a2
+  labs(x = '', y = "Relative contribution to explained variance (%)") -> Figure_3a2; Figure_3a2
 
 # 9.11 x 10.10
 Figure_3a1+Figure_3a2 + plot_layout(widths = c(0.9,0.1)) -> Figure_3a; Figure_3a
@@ -330,7 +319,7 @@ ggplot()+
   scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
   scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Funct-Dist") +
   annotate("text", label = expression(italic(p) == 0.049), x = 0.6, y = -0.12, size = 4) + 
-  mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_3b; Figure_3b
+  theme_classic() + mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_3b; Figure_3b
 
 ################################## Figure 4c ###################################
 pred_mode <- ggeffect(Final_model, terms = c("Tave_site","Phylo_Di_log"))
