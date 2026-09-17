@@ -151,12 +151,12 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 
 **Data-specific onformation for:** ***10. diff_BC_merge_all.rds***
   
-   Description: This dataset was used to assess the contributions of shared fungal taxa to rhizosphere fungal community compositional variation (Bray–Curtis dissimilarity) among co-occurring plant species in the field survey and greenhouse experiment.
+    Description: This dataset was used to assess the contributions of shared fungal taxa to rhizosphere fungal community compositional variation (Bray–Curtis dissimilarity) among co-occurring plant species in the field survey and greenhouse experiment.
    
 
 **Data-specific onformation for:** ***11. BC_dist_field_all.rds***
   
-  Description: Pairwise Bray–Curtis dissimilarity matrix calculated  for field survey samples based on all ASVs.
+    Description: Pairwise Bray–Curtis dissimilarity matrix calculated  for field survey samples based on all ASVs.
 
   
   
