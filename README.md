@@ -85,9 +85,6 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * outgroup_dist	    Phylogenetic distance from plant species to the outgroup
     * Field_SR	       Fungal richness of rhizosphere soil samples in field survey
 
-**Data-specific onformation for:** ***Greenhouse_data_raw_ASVs.xlsx***
-
-    * Abundance table of raw sequencing data of rhizosphere fungi from greenhouse experiment (not rarefied to minimum sample size)
 
 **Data-specific onformation for:** ***Greenhouse_data_group.xlsx***
 
