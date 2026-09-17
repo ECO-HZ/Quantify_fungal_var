@@ -3,8 +3,8 @@
 ################################################################################
 
 # Loading R packages
-library(openxlsx)
-library(vegan)
+library(openxlsx) # version 4.2.5.2
+library(vegan) # version 2.6.4
 
 ############################## (Field survey part) #############################
 # Soil sample grouping information
