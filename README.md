@@ -49,7 +49,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * 02_Distinctiveness index calculation.R  
       We sequentially calculated distinctiveness indices for plant functional traits, phylogenetic relationships, and fungal community composition based on a common distinctiveness metric.
     
-**Data-specific onformation for:** ***1.Field_data_group.xlsx***
+**Data-specific onformation for:** ***1. Field_data_group.xlsx***
 
     Variable list (Description)	         
     * Sample_ID: Sample id of  plant rhizosphere soil 
@@ -86,7 +86,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Field_SR: Fungal richness of rhizosphere soil samples in field survey
 
 
-**Data-specific onformation for:** ***2.Greenhouse_data_group.xlsx***
+**Data-specific onformation for:** ***2. Greenhouse_data_group.xlsx***
 
     Variable list (Description)	     
     * Sample_ID: Sample id of  plant rhizosphere soil 
@@ -103,7 +103,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * FRR: Fine-to-total root mass (g g-1)
     * RS: Root-to-shoot mass ratio (g g-1)
 
-**Data-specific onformation for:** ***3.Site_information_seed.xlsx***
+**Data-specific onformation for:** ***3. Site_information_seed.xlsx***
 
     Sheets: sp_site-Information on the location of seed collection of studying species
     Variable list (Description)	     
