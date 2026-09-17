@@ -5,14 +5,14 @@
 # Robustness evaluation of fungal composition distinctiveness index (based on greenhouse exp.)
 
 # Loading the R packages
-library(betapart)
-library(openxlsx)
-library(dplyr)
-library(Rmisc)
-library(reshape2)
-library(emmeans)
-library(multcomp)
-library(ggplot2)
+library(betapart) # version 1.6
+library(openxlsx) # version 4.2.5.2
+library(dplyr) # version 1.1.1
+library(Rmisc) # version 1.5.1
+library(reshape2) # version 1.4.4
+library(emmeans) # version 1.10.6
+library(multcomp) # version 1.4.26
+library(ggplot2) # version 3.5.2
 
 # Custom style
 mytheme <- theme(panel.background = element_rect(fill = 'transparent', colour = 'black'),
@@ -45,6 +45,7 @@ Green_otu_01[Green_otu_01>0] = 1
 fd <- beta.pair(Green_otu_01, index.family = "sorensen")
 Green_total_dis5 <- fd$beta.sim
 Green_dist <- as.matrix(Green_total_dis5)
+Green_dist <- readRDS("Sim_dist_green_all.rds")
 
 # Transform sample-level dissimilarity matrix into species-level dissimilarity matrix
 Green_dist_data <- reshape2::melt(Green_dist, varnames = c("Sample_ID_A", "Sample_ID_B"), value.name = "dist", na.rm = T)
@@ -259,7 +260,7 @@ ggplot() +
   geom_text(data = label_data,mapping = aes(x = num, y = y_pos, label = Letters),
             size = 3,vjust = 0) +
   facet_wrap(~ Latin_name, ncol = 9, nrow = 6) +
-  labs(x = "Add number of species", y = "Fungal compositional distinctiveness") +
+  labs(x = "Number of species", y = "Fungal compositional distinctiveness") +
   mytheme +
   theme(strip.text = element_text(size = 9, face = "italic"),
         axis.text = element_text(colour = "black", size = 8)) -> Figure_S5; Figure_S5
