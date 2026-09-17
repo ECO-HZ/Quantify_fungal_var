@@ -3,15 +3,15 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(car)
-library(MuMIn)
-library(ggplot2)
-library(glmm.hp)
-library(ggeffects)
-library(patchwork)
-library(ggtext)
-library(dplyr)
+library(openxlsx) # version 4.2.5.2
+library(car) # version 3.1.1
+library(MuMIn) # version 1.46.0
+library(ggplot2) # version 3.5.2
+library(glmm.hp) # version 0.1.7
+library(ggeffects) # version 1.5.0
+library(patchwork) # version 1.3.1
+library(ggtext) # version 0.1.2
+library(dplyr) # version 1.1.1
 
 # Custom style
 mytheme <- theme_classic() + 
@@ -42,10 +42,6 @@ Field_group$Sample_ID <- rownames(Field_group)
 
 Field_group$Effect_size_all <- log(Field_group$Fungal_Di_field_all/Field_group$Fungal_Di_green_all)
 Field_group$Effect_size_com <- log(Field_group$Fungal_Di_field_com/Field_group$Fungal_Di_green_com)
-
-cor.test(Field_group$Effect_size_all, Field_group$Effect_size_com, method = "spearman")
-
-mod <- lm(Effect_size_all ~ Effect_size_com, data = Field_group)
 
 mod <- lmer(Effect_size_all ~ Effect_size_com + (1|Site) + (1|Years) + (1|Years:Site), data = Field_group)
 anova(mod, ddf = "Kenward-Roger")
@@ -80,19 +76,18 @@ ggplot(Field_group, aes(Effect_size_com, Effect_size_all))+
        tag = "(a)") -> Figure_S6a; Figure_S6a
 
 ################################# Figure S6b-d #################################
-
 # Loading the R packages
-library(openxlsx)
-library(car)
-library(MuMIn)
-library(ggplot2)
-library(glmm.hp)
-library(ggeffects)
-library(patchwork)
-library(ggtext)
-library(dplyr)
-library(lme4)
-library(lmerTest)
+library(openxlsx) # version 4.2.5.2
+library(car) # version 3.1.1
+library(MuMIn) # version 1.46.0
+library(ggplot2) # version 3.5.2
+library(glmm.hp) # version 0.1.7
+library(ggeffects) # version 1.5.0
+library(patchwork) # version 1.3.1
+library(ggtext) # version 0.1.2
+library(dplyr) # version 1.1.1
+library(lme4) # version 1.1.34
+library(lmerTest) # version 3.1.3
 
 # Custom style
 mytheme = theme(panel.background = element_rect(fill='white', colour='black'),
@@ -138,15 +133,15 @@ grand_Precip <- mean(Field_group$Precipitation, na.rm = TRUE)
 
 # Calculate Site Means (Site Effect, 5 df)
 site_means <- Field_group %>%
-  group_by(Site) %>%
-  summarise(Tave_site = mean(Tave, na.rm = TRUE),
+  dplyr::group_by(Site) %>%
+  dplyr::summarise(Tave_site = mean(Tave, na.rm = TRUE),
             Precip_site = mean(Precipitation, na.rm = TRUE),
             .groups = "drop")
 
 # Calculate Year Means (Year Effect, 2 df)
 year_means <- Field_group %>%
-  group_by(Years) %>%
-  summarise(Tave_year = mean(Tave, na.rm = TRUE),
+  dplyr::group_by(Years) %>%
+  dplyr::summarise(Tave_year = mean(Tave, na.rm = TRUE),
             Precip_year = mean(Precipitation, na.rm = TRUE),
             .groups = "drop")
 
@@ -269,16 +264,7 @@ model_aov_results_df = as.data.frame(model_aov_results)
 model_aov_results_df$Parameter = rownames(model_aov_results_df)
 
 model_aov_results_df <- model_aov_results_df %>%
-  mutate(Parameter = recode(as.character(Parameter),
-                            "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
-                            "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
-
-summary_Data <- as.data.frame(summary(Final_model)$coefficients)
-summary_Data$Parameter <- rownames(summary_Data)
-summary_Data = summary_Data[-1, ]
-
-summary_Data <- summary_Data %>%
-  mutate(Parameter = recode(as.character(Parameter),
+  mutate(Parameter = dplyr::recode(as.character(Parameter),
                             "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
                             "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
 
@@ -286,7 +272,7 @@ summary_Data <- summary_Data %>%
 MegaModelSummary <- as.data.frame(effectsize::effectsize(Final_model))[-1,]
 
 MegaModelSummary <- MegaModelSummary %>%
-  mutate(Parameter = recode(as.character(Parameter),
+  mutate(Parameter = dplyr::recode(as.character(Parameter),
                             "Soil_N:Funct_Di_log" = "Funct_Di_log:Soil_N",
                             "Tave_site:Phylo_Di_log" = "Phylo_Di_log:Tave_site"))
 
@@ -297,14 +283,13 @@ hierarchical_data_df$Parameter = rownames(hierarchical_data_df)
 print(hierarchical_data_df)
 
 MegaModelSummary_all = MegaModelSummary %>% left_join(hierarchical_data_df) %>%
-  left_join(model_aov_results_df[,c("Parameter", "Pr(>F)")]) %>%
-  left_join(summary_Data[,c("Parameter", "Estimate", "Std. Error")])
+  left_join(model_aov_results_df[,c("Parameter", "Pr(>F)")]) 
 
 ################################## Figure S6b ###################################
 # Obtaining standardized regression coefficients and their 95% CI
-MegaModelSummary_all$Term_display = c("Field fungal composition", "Spatial temperature", 
+MegaModelSummary_all$Term_display = c("Field fungal composition", "Site temperature", 
                                       "Soil N", "Phylo-Dist", "Funct-Dist", 
-                                      "Funct-Dist × Soil N", "Phylo-Dist × Spatial temperature")
+                                      "Funct-Dist × Soil N", "Phylo-Dist × Site temperature")
 
 MegaModelSummary_all$Term_display = factor(MegaModelSummary_all$Term_display, levels = rev(unique(MegaModelSummary_all$Term_display)))
 
@@ -319,8 +304,8 @@ ggplot(MegaModelSummary_all, aes(x = Term_display, y = Std_Coefficient, fill = G
   geom_errorbar(aes(ymin = CI_low, ymax = CI_high), width=0, size = 0.8, color = "black")+
   geom_point(size = 3.5, pch = 21) +
   #geom_segment(aes(y = 0, yend = 0, x = 0.5, xend = 12.3), color = "black", linetype = "dashed") + 
-  geom_text(aes(y = CI_high, label = paste("italic(p)==", round(`Pr(>F)`, 3))),
-            parse = TRUE, hjust = -0.4, vjust = 0.4, size = 4) + 
+  geom_text(aes(y = Std_Coefficient, label = paste("italic(p)==", round(`Pr(>F)`, 3))),
+            parse = TRUE, hjust = 0.4, vjust = -0.4, size = 4) + 
   labs(x = NULL, 
        y = 'Parameter estimates', 
        #title = "Best model: <i>R</i><sup>2</sup> = 0.320", 
@@ -366,7 +351,7 @@ ggplot(MegaModelSummary_deal2, aes(x = "Importance", y = explained_all2, fill = 
         axis.line.y = element_line(color = "black"),
         axis.text = element_text(size = 12, color = "black"),
         legend.position = "none") + 
-  labs(x = '', y = "Relative effect of estimates (%)") -> Figure_S6b2; Figure_S6b2
+  labs(x = '', y = "Relative contribution to explained variance (%)") -> Figure_S6b2; Figure_S6b2
 
 # 9.11 x 10.10
 Figure_S6b1+Figure_S6b2 + plot_layout(widths = c(0.9,0.1)) -> Figure_S6b; Figure_S6b
@@ -401,7 +386,7 @@ ggplot()+
   scale_y_continuous(labels = scales::number_format(accuracy = 0.01)) +
   scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
   scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Funct-Dist") +
-  annotate("text", label = expression(italic(p) == 0.009), x = 0.6, y = -0.12, size = 4) + 
+  annotate("text", label = expression(italic(p) == 0.009), x = 0.6, y = -0.20, size = 4) + 
   mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_S6c; Figure_S6c
 
 
@@ -426,7 +411,7 @@ eff_mod_data$Phylo_Di_log <- factor(eff_mod_data$Phylo_Di_log, levels = c("Low P
 
 ggplot()+
   geom_line(data = eff_mod_data, mapping = aes(Tave_site, Effect_size, color = factor( Phylo_Di_log)), size = 1.25) +
-  labs(x = expression("Spatial temperature (°C)"), 
+  labs(x = expression("Site temperature (°C)"), 
        y = bquote(atop("Environmental effects", 
                        Ln ~ "(" ~ frac(Fungi-dist[" estimated in field"], 
                                        Fungi-dist[" estimated in greenhouse"]) ~ ")")),
@@ -434,6 +419,6 @@ ggplot()+
   geom_hline(yintercept = 0, linetype = 1, color = "grey") +
   scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
   scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Phylo-Dist") +
-  annotate("text", label = expression(italic(p) == 0.013), x = 21, y = -0.03, size = 4) + 
+  annotate("text", label = expression(italic(p) == 0.013), x = 21, y = -0.20, size = 4) + 
   mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_S6d; Figure_S6d
 
