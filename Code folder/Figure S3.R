@@ -1,10 +1,12 @@
 ################################################################################
 ################################# Figure S3 ####################################
 ################################################################################
-library(ggplot2)
-library(openxlsx)
-library(emmeans)
-library(ggeffects)
+
+# Loading the R packages
+library(ggplot2) # version 3.5.2
+library(openxlsx) # version 4.2.5.2
+library(emmeans) # version 1.10.6
+library(ggeffects) # version 1.5.0
 
 # Custom style
 mytheme = theme_classic()+ 
@@ -31,6 +33,8 @@ mytheme = theme_classic()+
 # Loading the grouping metadata of soil samples
 Field_group <- read.xlsx("Field_data_group.xlsx", sheet = "Field_group", rowNames = T, colNames = T)
 Field_group$Sample_ID <- rownames(Field_group)
+summary(Field_group$Soil_N)
+summary(Field_group$Wcont*100)
 
 # Data Transformation
 Field_group$SRL <- log10(Field_group$SRL)
@@ -42,7 +46,7 @@ Field_group$Origin <- factor(Field_group$Origin, levels = c("Native","Exotic"))
 
 ## annual average temperature 
 data_Tave <- unique(Field_group[,c("Years" ,"Site", "Latitude", "Tave")])
-
+summary(data_Tave$Tave)
 mod1 = lmer(Tave ~ Years * Latitude + (1|Site), data_Tave)
 anova(mod1, ddf = "Kenward-Roger")
 shapiro.test(residuals(mod1))
@@ -61,12 +65,14 @@ ggplot() +
   scale_color_manual(values = c("2018" = "#898EA1", "2020" = "#CF9742", "2021" = "#3A7C72")) + 
   scale_fill_manual(values = c("2018" = "#898EA1", "2020" = "#CF9742", "2021" = "#3A7C72")) + 
   scale_y_continuous(expand = expansion(mult = c(0.1, 0.1))) + 
-  labs(x = NULL, y = expression("Annual average temperature ( " * degree * "C)"), tag = "(a)") -> p1; p1
+  labs(x = "Latitude (North degrees)", 
+       y = expression("Annual average temperature ( " * degree * "C)"), 
+       tag = "(a)") -> p1; p1
 
 
 ## annual Precipitation
 data_Precipitation <- unique(Field_group[,c("Years" ,"Site", "Latitude", "Precipitation")])
-# anova(lm(Precipitation ~ Latitude, subset(data_Precipitation, Years == "2020")))
+summary(data_Precipitation$Precipitation)
 mod2 = lmer(Precipitation ~ Years * Latitude + (1|Site), data_Precipitation)
 anova(mod2, ddf = "Kenward-Roger")
 
@@ -86,12 +92,14 @@ ggplot() +
   #scale_x_continuous(expand = expansion(mult = c(0.1, 0.1))) +
   scale_y_continuous(expand = expansion(mult = c(0.1, 0.1))) + 
   #scale_x_continuous(breaks=c(23.1,25.2,27.9,30.5,34.6,36.2)) + 
-  labs(x = NULL, y = expression("Annual precipitation (mm)"), tag = "(b)") -> p2; p2
+  labs(x = "Latitude (North degrees)", 
+       y = expression("Annual precipitation (mm)"), 
+       tag = "(b)") -> p2; p2
 
 
 ## Soil pH
 data_Soil_ph <- Field_group[,c("Origin", "Years" ,"Site", "Latitude", "Soil_ph", "Species")]
-
+summary(data_Soil_ph$Soil_ph)
 mod3 = lmer(Soil_ph ~ Years * Latitude + (1|Site) + (1|Site:Years), data = data_Soil_ph)
 anova(mod3, ddf = "Kenward-Roger")
 
@@ -109,7 +117,9 @@ ggplot() +
   scale_fill_manual(values = c("2018" = "#898EA1", "2020" = "#CF9742", "2021" = "#3A7C72")) + 
   scale_linetype_manual(values = c(2,1,1)) + 
   scale_y_continuous(expand = expansion(mult = c(0.1, 0.1))) +
-  labs(x = NULL, y = "Soil pH", tag = "(c)") -> p3; p3
+  labs(x = "Latitude (North degrees)", 
+       y = "Soil pH", 
+       tag = "(c)") -> p3; p3
 
 
 ## Soil total nitrogen content
@@ -131,7 +141,9 @@ ggplot() +
   scale_color_manual(values = c("2018" = "#898EA1", "2020" = "#CF9742", "2021" = "#3A7C72")) + 
   scale_fill_manual(values = c("2018" = "#898EA1", "2020" = "#CF9742", "2021" = "#3A7C72")) + 
   #scale_y_continuous(expand = expansion(mult = c(0.1, 0.3))) + 
-  labs(x = NULL, y = "Soil total nitrogen content (%, sqrt)", tag = "(d)") -> p4; p4
+  labs(x = "Latitude (North degrees)", 
+       y = "Soil total nitrogen content (%, sqrt)", 
+       tag = "(d)") -> p4; p4
 
 
 ## Soil water content
@@ -157,7 +169,9 @@ ggplot() +
   #scale_y_continuous(expand = expansion(mult = c(0.1, 0.3))) + 
   #scale_x_continuous(expand = expansion(mult = c(0.1, 0.1))) +
   #scale_x_continuous(breaks=c(23.1,25.2,27.9,30.5,34.6,36.2)) + 
-  labs(x = NULL, y = "Soil water content (%, sqrt)", tag = "(e)") -> p5; p5
+  labs(x = "Latitude (North degrees)", 
+       y = "Soil water content (%, sqrt)", 
+       tag = "(e)") -> p5; p5
 
 # (p1/p4|p2/p5|p3/p5)
 
