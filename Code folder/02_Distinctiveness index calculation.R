@@ -3,12 +3,12 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(dplyr)
-library(betapart)
-library(phytools)
-library(treeio)
-library(funrar)
+library(openxlsx) # version 4.2.5.2
+library(dplyr) # version 1.1.1
+library(betapart) # version 1.6
+library(phytools) # version 2.1.1
+library(treeio) # version 1.18.1
+library(funrar) # version 1.5.0
 
 # Function to standardize 
 standr <- function(x){(x-min(x))/(max(x)-min(x))} 
@@ -30,11 +30,8 @@ Field_otu_01 <- t(Field_otu_raw)
 Field_otu_01[Field_otu_01 > 0] = 1 
 fd <- beta.pair(Field_otu_01, index.family = "sorensen")
 Sim_dist_field_mean <- fd$beta.sim
-
-# bray-Curtis
-Field_relative <- decostand(Field_otu_raw, method = "total", MARGIN = 2)
-colSums(Field_relative)
-BC_dist_field_mean <- vegdist(t(Field_relative), method = 'bray')
+saveRDS(Sim_dist_field_mean, file = "Sim_dist_field_all.rds")
+Sim_dist_field_mean <- readRDS("Sim_dist_field_all.rds")
 
 ############################# Greenhouse experiment ############################
 # Soil sample grouping information in greenhouse exp.
@@ -53,11 +50,8 @@ Green_otu_01 <- t(Green_otu_raw)
 Green_otu_01[Green_otu_01 > 0] <- 1 
 fd <- beta.pair(Green_otu_01, index.family = "sorensen")
 Sim_dist_green <- fd$beta.sim
-
-# bray-Curtis
-Green_fungi_relative <- decostand(Green_otu_raw, method = "total", MARGIN = 2)
-colSums(Green_fungi_relative)
-BC_dist_green <- vegdist(t(Green_fungi_relative), method = 'bray')
+saveRDS(Sim_dist_green, file = "Sim_dist_green_all.rds")
+Sim_dist_green <- readRDS("Sim_dist_green_all.rds")
 
 # note:
 # To match the rhizosphere fungal data with the corresponding species from the 
@@ -79,9 +73,10 @@ diag(Sim_dist_green_mean) = 0
 
 ############################# Functional traits ################################
 # loading functional traits databases estimated in the greenhouse experiment
-traits_mean = read.xlsx("traits_mean.xlsx", sheet = "traits_mean", colNames = T, rowNames = T)
-traits_mean$Species = rownames(traits_mean)
-colnames(traits_mean)
+#traits_mean = read.xlsx("traits_mean.xlsx", sheet = "traits_mean", colNames = T, rowNames = T)
+traits_mean = unique(Field_group[,c("Species", "Chol", "SLA", "LDMC", "SRL", "FRR", "RS")])
+rownames(traits_mean) = traits_mean$Species
+head(traits_mean)
 shapiro.test(sqrt(traits_mean$RS))
 shapiro.test(log10(traits_mean$SRL))
 traits_mean$RS = sqrt(traits_mean$RS)
@@ -207,6 +202,8 @@ Shared_Field_otu_01[Shared_Field_otu_01 > 0] = 1
 fd <- beta.pair(Shared_Field_otu_01, index.family = "sorensen")
 Sim_dist_field_Shared <- fd$beta.sim
 dim(Sim_dist_field_Shared)
+saveRDS(Sim_dist_field_Shared, file = "Sim_dist_field_Shared.rds")
+Sim_dist_field_Shared <- readRDS("Sim_dist_field_Shared.rds")
 
 # Simpson distance matrix for shared taxa in greenhouse
 Shared_Green_otu_01 <- t(Green_otu_raw[common_ASVs,])
@@ -214,6 +211,8 @@ Shared_Green_otu_01[Shared_Green_otu_01 > 0] <- 1
 fd <- beta.pair(Shared_Green_otu_01, index.family = "sorensen")
 Sim_dist_green_Shared <- fd$beta.sim
 dim(Sim_dist_green_Shared)
+saveRDS(Sim_dist_green_Shared, file = "Sim_dist_green_Shared.rds")
+Sim_dist_green_Shared <- readRDS("Sim_dist_green_Shared.rds")
 
 # note:
 # To match the rhizosphere fungal data with the corresponding species from the 
