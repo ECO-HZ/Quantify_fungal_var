@@ -3,9 +3,9 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(corrplot)
-library(Hmisc)
+library(openxlsx) # version 4.2.5.2
+library(corrplot) # version 0.95
+library(Hmisc) # version 5.0.1
 
 # Soil sample grouping information
 Field_group <- read.xlsx("Field_data_group.xlsx", sheet = "Field_group", rowNames = T, colNames = T)
@@ -21,8 +21,6 @@ Field_group$Wcont <- sqrt(Field_group$Wcont*100)
 Field_group$Soil_N <- sqrt(Field_group$Soil_N)
 Field_group$Funct_Di_log <- log10(Field_group$Funct_Di)
 Field_group$Phylo_Di_log <- log10(Field_group$Phylo_Di)
-
-cor.test(Field_group$Phylo_Di_log, Field_group$Precipitation)
 
 Field_group_cor = Field_group[,c("Funct_Di_log","Phylo_Di_log",
                                  "Tave","Precipitation","Soil_N","Soil_ph","Wcont")]
