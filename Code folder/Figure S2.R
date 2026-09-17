@@ -1,10 +1,11 @@
 ################################################################################
 ################################# Figure S2 ####################################
 ################################################################################
+
 # Loading the R packages
-library(openxlsx)
-library(ggvenn)
-library(ggridges)
+library(openxlsx) # version 4.2.5.2
+library(ggvenn) # version 0.1.10
+library(ggridges) # version 0.5.7
 
 # Soil sample grouping information in field
 Field_group <- read.xlsx("Field_data_group.xlsx", sheet = "Field_group", rowNames = T, colNames = T)
@@ -15,8 +16,9 @@ Field_otu_raw <- read.xlsx("Field_data_raw_ASVs.xlsx", sheet = "raw_otu", colNam
 rownames(Field_otu_raw) <- Field_otu_raw$ASVs_ID
 Field_otu_raw <- Field_otu_raw[ ,Field_group$Sample_ID]
 Field_otu_raw[1:6, 1:6]
-dim(Field_otu_raw)
 Field_otu_raw = Field_otu_raw[rowSums(Field_otu_raw) > 0, ]
+dim(Field_otu_raw)
+sum(Field_otu_raw)
 #View(as.data.frame(rowSums(Field_otu_raw)))
 
 # loading sample grouping information in greenhouse exp.
@@ -163,6 +165,9 @@ for (i in Years) {
   }
 }
 
+head(diff_BC_merge_all)
+saveRDS(diff_BC_merge_all, file = "diff_BC_merge_all.rds")
+diff_BC_merge_all <- readRDS("diff_BC_merge_all.rds")
 
 # set color of site
 site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
@@ -178,7 +183,8 @@ diff_BC_merge_all %>%
   summarise(
     mean_diff_BC = mean(diff_BC*100),
     sd_diff_BC = sd(diff_BC*100),
-    se_diff_BC = sd(diff_BC*100) / sqrt(n()))
+    se_diff_BC = sd(diff_BC*100) / sqrt(n())) %>% 
+  as.data.frame()
 
 # plot
 ggplot(diff_BC_merge_all, aes(y = Years, x = diff_BC*100, fill = Type, color = Type)) +
@@ -202,12 +208,12 @@ ggplot(diff_BC_merge_all, aes(y = Years, x = diff_BC*100, fill = Type, color = T
         axis.title.x = element_text(colour = 'black', size = 14),
         axis.title.y = element_text(colour = 'black', size = 14),
         axis.text.y = element_text(colour = 'black', size = 12),
-        axis.text.x = element_text(colour = 'black', size = 12, angle = 90, vjust = -0.01),
+        axis.text.x = element_text(colour = 'black', size = 12, angle = 90, vjust = 0.5, hjust = 1),
         strip.background = element_rect(color=NA, size=0.5, linetype="solid"),
         strip.placement = "outside",
         strip.text.x = element_text(size = 12, colour = "black"),
         panel.spacing = unit(0, "lines")) +
-  labs(x = 'Common taxa contributions\nto fungal community dissimilarity', y = NULL) +
+  labs(x = 'Shared taxa contributions\nto fungal community dissimilarity (%)', y = NULL) +
   geom_segment(aes(x = 0, xend = 0, y = 1, yend = 3), color = "black") +
   coord_flip() -> Figure_S2b; Figure_S2b
 
@@ -228,12 +234,6 @@ Field_otu_raw <- Field_otu_raw[ ,Field_group$Sample_ID]
 Field_otu_raw[1:6, 1:6]
 #colSums(Field_otu_raw)
 
-# Simpson distance matrix
-Field_otu_01 <- t(Field_otu_raw)
-Field_otu_01[Field_otu_01 > 0] = 1 
-fd <- beta.pair(Field_otu_01, index.family = "sorensen")
-Sim_dist_field_mean <- fd$beta.sim
-
 # bray-Curtis
 Field_relative <- decostand(Field_otu_raw, method = "total", MARGIN = 2)
 colSums(Field_relative)
@@ -241,11 +241,14 @@ colSums(Field_relative)
 # 
 dim(Field_relative[common_ASVs, ])
 BC_dist_field_shared <- vegdist(t(Field_relative[common_ASVs, ]), method = 'bray')
+saveRDS(BC_dist_field_shared, file = "BC_dist_field_shared.rds")
+BC_dist_field_shared <- readRDS("BC_dist_field_shared.rds")
+
 field_BC_matrix <- as.matrix(BC_dist_field_shared)
 field_BC_matrix_long <- reshape2::melt(field_BC_matrix, varnames = c("Sample_ID1", "Sample_ID2"), value.name = "field_shared_BC")
 head(field_BC_matrix_long)
 
-# added species informations
+# added species information
 colnames(field_BC_matrix_long)[1] = "Sample_ID"
 field_BC_matrix_long = field_BC_matrix_long %>% left_join(Field_group[,c("Sample_ID", "Species")])
 colnames(field_BC_matrix_long)[4] = "Species_ID1"
@@ -255,7 +258,6 @@ field_BC_matrix_long = field_BC_matrix_long %>% left_join(Field_group[,c("Sample
 colnames(field_BC_matrix_long)[5] = "Species_ID2"
 
 head(field_BC_matrix_long)
-
 
 ############################# Greenhouse experiment ############################
 # Soil sample grouping information in greenhouse exp.
@@ -269,12 +271,6 @@ Green_otu_raw <- Green_otu_raw[ ,Green_group$Sample_ID]
 Green_otu_raw[1:6,1:6]
 #colSums(Green_otu_raw)
 
-# Simpson distance matrix
-Green_otu_01 <- t(Green_otu_raw)
-Green_otu_01[Green_otu_01 > 0] <- 1 
-fd <- beta.pair(Green_otu_01, index.family = "sorensen")
-Sim_dist_green <- fd$beta.sim
-
 # bray-Curtis
 Green_fungi_relative <- decostand(Green_otu_raw, method = "total", MARGIN = 2)
 colSums(Green_fungi_relative)
@@ -282,6 +278,8 @@ colSums(Green_fungi_relative)
 #
 dim(Green_fungi_relative[common_ASVs, ])
 BC_dist_green_shared <- vegdist(t(Green_fungi_relative[common_ASVs, ]), method = 'bray')
+saveRDS(BC_dist_green_shared, file = "BC_dist_green_shared.rds")
+BC_dist_green_shared <- readRDS("BC_dist_green_shared.rds")
 
 # note:
 # To match the rhizosphere fungal data with the corresponding species from the 
@@ -327,11 +325,11 @@ Field_group = Field_group[colnames(field_matrix), ]
 
 strata_group <- interaction(Field_group$Site, Field_group$Years)
 
-
+set.seed(123456)
 # Run Mantel test WITH STRATIFIED PERMUTATIONS constrained within Site x Year
 mantel_stratified <- mantel(as.dist(field_matrix), as.dist(green_matrix), 
                             method = "spearman", 
-                            strata = strata_group, # Constrains permutations to site-year strata!
+                            strata = strata_group, # Constrains permutations to site-year strata
                             permutations = 999)
 
 print(mantel_stratified)
