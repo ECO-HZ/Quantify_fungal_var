@@ -3,13 +3,16 @@
 ################################################################################
 
 # Loading the R packages
-library(openxlsx)
-library(dplyr)
-library(ggplot2)
-library(ggstar)
-library(ggtext)
-library(MuMIn)
-library(patchwork)
+library(openxlsx) # version 4.2.5.2
+library(dplyr) # version 1.1.1
+library(ggplot2) # version 3.5.2
+library(ggstar) # version 1.0.4
+library(ggtext) # version 0.1.2
+library(MuMIn) # version 1.46.0
+library(lme4) # version 1.1.34
+library(lmerTest) # version 3.1.3
+library(AICcmodavg) # version 2.3.3
+library(patchwork) # version 1.3.1
 
 # Custom style
 mytheme <- theme_classic() + 
@@ -82,16 +85,11 @@ site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#4
 
 mod = lmer(Fungal_Di_field_all ~ Fungal_Di_green_all + (1|Site) + (1|Years) + (1|Site:Years), data = total_data)
 anova(mod, ddf = "Kenward-Roger")
-MuMIn::r.squaredGLMM(mod)
 
-shapiro.test(residuals(mod))
 hist(resid(mod))
 plot(fitted(mod), resid(mod))
 abline(h = 0, lty = 2)
 
-summary(total_data$Fungal_Di_field_all)
-
-library(AICcmodavg)
 total_data$F0 <- predictSE(mod, total_data, level = 0)$fit
 total_data$SE <- predictSE(mod, total_data, level = 0)$se.fit
 MuMIn::r.squaredGLMM(mod)
@@ -108,9 +106,9 @@ ggplot()+
   mytheme + 
   theme_bw() + mytheme + 
   theme(legend.position = "right") + 
-  annotate("text", x = 0.68, y = 0.610, label = "F[1*','*374] < 0.01", parse = TRUE, size = 4) + 
-  annotate("text", x = 0.68, y = 0.590, label = "italic(R)^2 < 0.01", parse = TRUE, size = 4) + 
-  annotate("text", x = 0.68, y = 0.560, label = "italic(p) == 0.952", parse = TRUE, size = 4) +
+  annotate("text", x = 0.68, y = 0.610, label = "F[1*','*280.6] == 0.06", parse = TRUE, size = 4) + 
+  annotate("text", x = 0.68, y = 0.590, label = "italic(R)^2*m < 0.01", parse = TRUE, size = 4) + 
+  annotate("text", x = 0.68, y = 0.560, label = "italic(p) == 0.800", parse = TRUE, size = 4) +
   scale_x_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) +
   scale_y_continuous(labels = scales::label_comma(accuracy =0.01), limits = c(0.56,0.95)) -> Figure_2a; Figure_2a
 
@@ -158,7 +156,6 @@ for (Y in Years) {
 
 final_result_t$p_value <- round(final_result_t$p_value, 3)
 print(subset(final_result_t, p_value >= 0.05))
-
 
 Effect_size_mean = Effect_size_mean %>% left_join(final_result_t)
 Effect_size_mean$sig <- ifelse(Effect_size_mean$p_value > 0.05, 0, 1)
