@@ -51,7 +51,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     
 **Data-specific onformation for:** ***Field_data_group.xlsx***
 
-    Variable list	         Description
+    Variable list (Description)	         
     * Sample_ID: Sample id of  plant rhizosphere soil 
     * Latitude: Latitude of sampling point
     * Longitude: Longitude of sampling point
@@ -86,9 +86,9 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Field_SR: Fungal richness of rhizosphere soil samples in field survey
 
 
-**Data-specific onformation for:** ***Greenhouse_data_group.xlsx***
+**Data-specific onformation for:**1. ***Greenhouse_data_group.xlsx***
 
-    Variable list	      Description
+    Variable list (Description)	     
     * Sample_ID: Sample id of  plant rhizosphere soil 
     * Repeats: Repeat number of soil samples
     * Chinese_name: Chinese name of study species
@@ -106,7 +106,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
 **Data-specific onformation for:** ***Site_information_seed.xlsx***
 
     Sheets: sp_site-Information on the location of seed collection of studying species
-    Variable list	 Description
+    Variable list (Description)	     
     * Species_powo: Latin species (powo)
     * Species: Latin species
     * Site1: Collection site 1
@@ -114,7 +114,7 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     * Site3: Collection site 3
     
     Sheets: site_map-City information of studying species seed collection point
-    Variable list	 Description
+    Variable list (Description)	     
     * Pinyin	 City name
     * Address	 City name
     * City	    City name
