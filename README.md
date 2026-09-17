@@ -115,6 +115,6 @@ The names of R-scripts correspond to the statistical analysis and visualization 
     
     Sheets: site_map-City information of studying species seed collection point
     Variable list (Description)	     
-    * Pinyin	 City name
-    * Address	 City name
-    * City	    City name
+    * Pinyin: City name
+    * Address: City name
+    * City: City name
