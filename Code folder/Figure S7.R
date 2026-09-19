@@ -83,8 +83,8 @@ df = plot_data_add %>% dplyr::group_by(Site, Years) %>%
 #Rmisc::summarySE(plot_data_add, measurevar = c("PCoA1"), groupvars = c("Years", "Latitude", "Origin"))
 
 # set colors of site
-site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
-                 "Wuhan" = "#32B7B2", "Zhengzhou" = "#75A750", "Tai'an" = "#E69F0D")
+site_colors <- c("Guangzhou" = "#E69F0D", "Guilin" = "#59B3E5", "Changsha" = "#209F74",
+                 "Wuhan" = "#EEE341", "Zhengzhou" = "#0D71B1", "Tai'an" = "#D55F13")
 
 ggplot(df, aes(PCoA1_mean, PCoA2_mean))+
   geom_point(plot_data_add, mapping = aes(PCoA1, PCoA2, color = Site, fill = Site, shape = Years), size = 2) + 
