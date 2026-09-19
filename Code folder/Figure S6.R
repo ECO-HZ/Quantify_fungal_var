@@ -384,8 +384,8 @@ ggplot()+
        tag = "(c)", color = expression("Phylo Di(log"[10]*"(10)")) +
   geom_hline(yintercept = 0, linetype = 1, color = "grey") +
   scale_y_continuous(labels = scales::number_format(accuracy = 0.01)) +
-  scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
-  scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Funct-Dist") +
+  scale_fill_manual(values = c("#F9DF88", "#89A9D2", "#444596")) +
+  scale_color_manual(values = c("#F9DF88", "#89A9D2", "#444596"), name = "Funct-Dist") +
   annotate("text", label = expression(italic(p) == 0.009), x = 0.6, y = -0.20, size = 4) + 
   mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_S6c; Figure_S6c
 
@@ -408,7 +408,7 @@ eff_mod_data$Phylo_Di_log <- ifelse(eff_mod_data$Phylo_Di_log == "-1", "Low Phyl
                                     ifelse(eff_mod_data$Phylo_Di_log == "0", "Mean Phylo−Dist", "High Phylo−Dist (+ 1 SD)"))
 eff_mod_data$Phylo_Di_log <- factor(eff_mod_data$Phylo_Di_log, levels = c("Low Phylo−Dist (- 1 SD)", "Mean Phylo−Dist", "High Phylo−Dist (+ 1 SD)"))
 
-
+# 5.20 x 5.02
 ggplot()+
   geom_line(data = eff_mod_data, mapping = aes(Tave_site, Effect_size, color = factor( Phylo_Di_log)), size = 1.25) +
   labs(x = expression("Site temperature (°C)"), 
@@ -417,8 +417,8 @@ ggplot()+
                                        Fungi-dist[" estimated in greenhouse"]) ~ ")")),
        tag = "(d)", color = expression("Phylo Di(log"[10]*"(10)")) +
   geom_hline(yintercept = 0, linetype = 1, color = "grey") +
-  scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
-  scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Phylo-Dist") +
+  scale_fill_manual(values = c("#F9DF88", "#89A9D2", "#444596")) +
+  scale_color_manual(values = c("#F9DF88", "#89A9D2", "#444596"), name = "Phylo-Dist") +
   annotate("text", label = expression(italic(p) == 0.013), x = 21, y = -0.20, size = 4) + 
   mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_S6d; Figure_S6d
 
