@@ -170,8 +170,8 @@ saveRDS(diff_BC_merge_all, file = "diff_BC_merge_all.rds")
 diff_BC_merge_all <- readRDS("diff_BC_merge_all.rds")
 
 # set color of site
-site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
-                 "Wuhan" = "#32B7B2", "Zhengzhou" = "#75A750", "Tai'an" = "#E69F0D")
+site_colors <- c("Guangzhou" = "#E69F0D", "Guilin" = "#59B3E5", "Changsha" = "#209F74",
+                 "Wuhan" = "#EEE341", "Zhengzhou" = "#0D71B1", "Tai'an" = "#D55F13")
 
 diff_BC_merge_all$Site <- factor(diff_BC_merge_all$Site, levels = c("Guangzhou","Guilin","Changsha","Wuhan","Zhengzhou","Tai'an"))
 diff_BC_merge_all$Type <- factor(diff_BC_merge_all$Type, levels = c("Field","Greenhouse"))
@@ -195,7 +195,7 @@ ggplot(diff_BC_merge_all, aes(y = Years, x = diff_BC*100, fill = Type, color = T
   scale_x_continuous(labels = scales::label_comma(accuracy = 1), limits = c(0,100), 
                      breaks = seq(0, 100, by = 25), expand = expansion(mult = c(0, 0.1))) +
   scale_y_discrete(expand = expansion(mult = c(0.36, 0))) + 
-  geom_vline(xintercept = 50, linetype = 2) +
+  #geom_vline(xintercept = 50, linetype = 2) +
   ggh4x::facet_grid2( ~ Site, #switch = "y", 
                       strip = ggh4x::strip_themed(background_x = ggh4x::elem_list_rect(fill = site_colors))) +
   theme_minimal() +
