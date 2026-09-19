@@ -80,8 +80,12 @@ cor.test(total_data_mean$Field_Di, total_data_mean$site_pool, method = "spearman
 plot(total_data_mean$site_pool, total_data_mean$Field_Di)
 
 # set colors of site
-site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
-                 "Wuhan" = "#32B7B2", "Zhengzhou" = "#75A750", "Tai'an" = "#E69F0D")
+site_colors <- c("Guangzhou" = "#E69F0D", "Guilin" = "#59B3E5", "Changsha" = "#209F74",
+                 "Wuhan" = "#EEE341", "Zhengzhou" = "#0D71B1", "Tai'an" = "#D55F13")
+
+#site_colors <- c("Guangzhou" = "#87898A", "Guilin" = "#C26275", "Changsha" = "#41479F",
+#                 "Wuhan" = "#32B7B2", "Zhengzhou" = "#75A750", "Tai'an" = "#E69F0D")
+
 
 mod = lmer(Fungal_Di_field_all ~ Fungal_Di_green_all + (1|Site) + (1|Years) + (1|Site:Years), data = total_data)
 anova(mod, ddf = "Kenward-Roger")
@@ -95,7 +99,7 @@ total_data$SE <- predictSE(mod, total_data, level = 0)$se.fit
 MuMIn::r.squaredGLMM(mod)
 
 ggplot()+
-  geom_point(total_data, mapping = aes(Fungal_Di_green_all, Fungal_Di_field_all, color = Site, fill = Site, shape = Years), size = 2) + 
+  geom_point(total_data, mapping = aes(Fungal_Di_green_all, Fungal_Di_field_all, color = Site, fill = Site, shape = Years), size = 3.5) + 
   scale_color_manual(values = site_colors) +
   scale_fill_manual(values = site_colors) +
   geom_line(data = total_data, aes(x = Fungal_Di_green_all, y=F0), size=1, linetype = 2) + 
@@ -173,28 +177,29 @@ ggplot() +
              position = position_nudge(x = -0.1), size = 2.8, show.legend = FALSE) +
   geom_point(data = subset(Effect_size_mean, Years == 2018 & Latitude == 23.1), 
              mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = -0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#87898A") +
+             position = position_nudge(x = -0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#E69F0D") +
   geom_point(data = subset(Effect_size_mean, Years == 2020 & Latitude != 23.1), 
              mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
              position = position_nudge(x = -0.0), size = 2.8, show.legend = FALSE) +
   geom_point(data = subset(Effect_size_mean, Years == 2020 & Latitude == 23.1), 
              mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = -0.0), size = 2.8, show.legend = FALSE, fill = "white", color = "#87898A") +
+             position = position_nudge(x = -0.0), size = 2.8, show.legend = FALSE, fill = "white", color = "#E69F0D") +
   geom_point(data = subset(Effect_size_mean, Years == 2021 & Latitude != 27.9 & Latitude != 30.5), 
              mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
              position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE) +
   geom_point(data = subset(Effect_size_mean, Years == 2021 & Latitude == 27.9), 
              mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#41479F") +
+             position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#209F74") +
   geom_point(data = subset(Effect_size_mean, Years == 2021 & Latitude == 30.5), 
              mapping = aes(x = Site, y = Effect_size_mean, shape = factor(Years), fill = Site),
-             position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#32B7B2") +
+             position = position_nudge(x = 0.1), size = 2.8, show.legend = FALSE, fill = "white", color = "#EEE341") +
   scale_shape_manual(values = c("2018" = 24, "2020" = 21, "2021" = 25)) +
   #scale_color_manual(values = site_colors) +
   scale_fill_manual(values = site_colors) +
   geom_hline(yintercept = 0, linetype = 1, color = "grey") +
   mytheme + theme(legend.position = "right") +
   theme(legend.position = c(0.35,0.25),
+        axis.text.y = element_text(colour='black',size=14),
         axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1)) + 
   scale_y_continuous(labels = scales::label_number(accuracy = 0.01)) + 
   labs(#x = "Latitude (North degrees)", 
@@ -204,4 +209,4 @@ ggplot() +
                                     Fungi-dist[" estimated in greenhouse"]) ~ ")")),
     tag = "(b)") -> Figure_2b; Figure_2b
 
-Figure_2a|Figure_2b
+Figure_2a|Figure_2b -> Figure_2
