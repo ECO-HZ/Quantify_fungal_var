@@ -316,8 +316,8 @@ ggplot()+
        tag = "(b)", color = expression("Phylo Di(log"[10]*"(10)")) +
   geom_hline(yintercept = 0, linetype = 1, color = "grey") +
   scale_y_continuous(labels = scales::number_format(accuracy = 0.01)) +
-  scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
-  scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Funct-Dist") +
+  scale_fill_manual(values = c("#F9DF88", "#89A9D2", "#444596")) +
+  scale_color_manual(values = c("#F9DF88", "#89A9D2", "#444596"), name = "Funct-Dist") +
   annotate("text", label = expression(italic(p) == 0.049), x = 0.6, y = -0.12, size = 4) + 
   theme_classic() + mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_3b; Figure_3b
 
@@ -342,20 +342,17 @@ eff_mod_data$Phylo_Di_log <- factor(eff_mod_data$Phylo_Di_log, levels = c("Low P
 
 ggplot()+
   geom_line(data = eff_mod_data, mapping = aes(Tave_site, Effect_size, color = factor( Phylo_Di_log)), size = 1.25) +
-  labs(x = expression("Spatial temperature (°C)"), 
+  labs(x = expression("Site temperature (°C)"), 
        y = bquote(atop("Environmental effects", 
                        Ln ~ "(" ~ frac(Fungi-dist[" estimated in field"], 
                                        Fungi-dist[" estimated in greenhouse"]) ~ ")")),
        tag = "(c)", color = expression("Phylo Di(log"[10]*"(10)")) +
   geom_hline(yintercept = 0, linetype = 1, color = "grey") +
-  scale_fill_manual(values = c("#184C3F", "#E4CB8F", "#57320F")) +
-  scale_color_manual(values = c("#184C3F", "#E4CB8F", "#57320F"), name = "Phylo-Dist") +
+  scale_fill_manual(values = c("#F9DF88", "#89A9D2", "#444596")) +
+  scale_color_manual(values = c("#F9DF88", "#89A9D2", "#444596"), name = "Phylo-Dist") +
   annotate("text", label = expression(italic(p) == 0.026), x = 21, y = -0.03, size = 4) + 
   mytheme + theme(legend.position = c(0.4,0.80)) -> Figure_3c; Figure_3c
 
 # 
 Figure_3a
 Figure_3b/Figure_3c -> Figure_3_right
-#ggsave("Figure_3a_0730.pdf", plot = Figure_3a, width = 8.5, height = 8, units = "in", dpi = 300)
-#ggsave("Figure_3b_0730.pdf", plot = Figure_3_right, width = 4.5, height = 7.8, units = "in", dpi = 300)
-
